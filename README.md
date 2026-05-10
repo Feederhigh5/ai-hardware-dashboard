@@ -31,6 +31,39 @@ Four live sliders (electricity price, hours/day, load factor, TCO horizon) contr
 
 DeepSeek V4 Pro · Kimi K2.6 · GLM 5.1 Reasoning · DeepSeek V4 Flash · Qwen 3.6 (235B) · Qwen 3.6 (35B) · GLM 4.7 Flash · Gemma 4 (31B) · Qwen 3.6 (27B)
 
+The dashboard ships with a **Model Catalogue** panel: search across the
+catalogue, multi-select which models drive the matrix/scatter/cards on
+the fly, and import additional models live from the OpenRouter
+`/api/v1/models` endpoint. Selection persists across reloads via
+`localStorage`.
+
+## Adding or fact-checking entries
+
+Hardware specs live in [`data/hardware.js`](data/hardware.js); model
+specs in [`data/models.js`](data/models.js). Each entry has three review
+fields:
+
+- `sources`: array of URLs/citations backing the numbers
+- `verified`: ISO date (`"2026-05-10"`) when last cross-checked, else `null`
+- `notes`: free-text caveats (e.g. unit conversions)
+
+To add a new entry, append an object with the same keys as existing
+ones and reload the page — no build step.
+
+### Importing from OpenRouter
+
+The "+ OpenRouter" button in the Modell-Katalog panel fetches the live
+list of models from `https://openrouter.ai/api/v1/models`. OpenRouter
+exposes `id`, `name`, `context_length`, and a description, but **not**
+parameter counts, VRAM, compute or bandwidth requirements — so imported
+entries land with empty math fields and an inline editor where you can
+fill in `total` / `active` (in billions). Once filled, the matrix
+populates using the formulas in the Methodology section below.
+
+The fetch needs a same-origin or CORS-allowed context: import works
+when serving via Docker or `python3 -m http.server`, but is blocked by
+the browser when opening `index.html` over `file://`.
+
 ## Tech stack
 
 - **React 18.3.1** + **Babel 7.29.0** via CDN (integrity-hashed) — no build step
