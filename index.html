@@ -661,6 +661,302 @@ input[type="range"]::-moz-range-thumb {
   margin: 4px 0 6px;
   display: block;
 }
+
+/* Model catalogue panel */
+.catalogue-panel {
+  margin: 0 24px 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.catalogue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.catalogue-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.catalogue-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1;
+}
+.catalogue-toggle:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.catalogue-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+.catalogue-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.catalogue-search {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  min-width: 220px;
+  outline: none;
+}
+.catalogue-search:focus { border-color: var(--accent-dim); }
+.catalogue-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 3px;
+}
+.catalogue-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.catalogue-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.catalogue-btn.primary {
+  background: var(--accent-bg);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+.catalogue-btn.primary:hover { background: rgba(122,162,255,0.16); }
+.catalogue-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+.catalogue-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+}
+.catalogue-row:hover { background: var(--surface); }
+.catalogue-row.on { background: var(--accent-bg); }
+.catalogue-row.imported { border-left: 2px solid var(--usable); }
+.catalogue-row input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.catalogue-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.catalogue-row-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.catalogue-row-meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.catalogue-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 2px;
+  font-weight: 500;
+}
+.catalogue-badge.needs-review {
+  background: var(--usable-bg);
+  color: var(--usable);
+}
+.catalogue-empty {
+  padding: 20px 14px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-size: 12px;
+  grid-column: 1 / -1;
+  background: var(--bg-panel);
+}
+.catalogue-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.catalogue-remove:hover { color: var(--err); background: var(--err-bg); }
+.param-edit {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.param-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.param-edit input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 6px;
+  width: 60px;
+  border-radius: 2px;
+  outline: none;
+}
+.param-edit input:focus { border-color: var(--accent-dim); }
+
+/* Empty matrix state */
+.matrix-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-style: italic;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 32px;
+}
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  width: min(820px, 100%);
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.modal-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.modal-sub {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+.modal-sub code {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-size: 10.5px;
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 22px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.modal-close:hover { color: var(--text-primary); background: var(--surface); }
+.modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-list {
+  display: grid;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  max-height: 460px;
+  overflow-y: auto;
+}
+.modal-list .catalogue-row { padding: 7px 12px; }
+.modal-list .catalogue-row code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+.modal-status {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.modal-status.error { color: var(--err); }
+.modal-status.error strong { font-weight: 600; }
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+.modal-count {
+  margin-right: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
 </style>
 </head>
 <body>
@@ -681,182 +977,26 @@ input[type="range"]::-moz-range-thumb {
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
+<!-- Curated catalogues. Edit data/hardware.js or data/models.js to add or fact-check entries. -->
+<script src="data/hardware.js"></script>
+<script src="data/models.js"></script>
+
 <script type="text/babel">
-/* Hardware + Model data extracted from the source brief.
-   All numbers reflect the LF=0.6 baseline; controls in the dashboard
-   recompute monthly cost based on user inputs. */
+/* Hardware + Model data are loaded from data/hardware.js and data/models.js.
+   The MODELS variable below is the *active* selection — populated and updated
+   by the Model Catalogue panel in the App. */
 
-const HARDWARE = [
-  {
-    id: 'server-4r9700',
-    name: 'Server · EPYC 9135 + 4× R9700',
-    short: 'Server 4× R9700',
-    category: 'Multi-GPU Cluster',
-    vram: 128,
-    tflops: 382,
-    bandwidth: 2560,
-    powerKI: 650,
-    powerIdle: 270,
-    powerMax: 1450,
-    price: 9500,
-    resaleFactor: 0.45,
-    composition: 'Basis 250 W + 4× GPU (~100 W/Karte Inferenz-Last)',
-    color: '#8a7ff5',
-    bestFor: 'Multi-GPU Hosting, große Modelle bis 128 GB VRAM'
-  },
-  {
-    id: 'ws-2r9700',
-    name: 'Workstation · 2× Radeon R9700',
-    short: 'WS 2× R9700',
-    category: 'Dual-GPU Workstation',
-    vram: 64,
-    tflops: 191,
-    bandwidth: 1280,
-    powerKI: 460,
-    powerIdle: 160,
-    powerMax: 760,
-    price: 4600,
-    resaleFactor: 0.50,
-    composition: 'PC 100 W + 2× GPU (~180 W/Karte)',
-    color: '#5fb3d4',
-    bestFor: 'Dichte 64-GB-Modelle mit hohem Durchsatz'
-  },
-  {
-    id: 'dgx-spark',
-    name: 'NVIDIA DGX Spark',
-    short: 'DGX Spark',
-    category: 'Unified Memory · CUDA',
-    vram: 128,
-    tflops: 100,
-    bandwidth: 273,
-    powerKI: 160,
-    powerIdle: 40,
-    powerMax: 240,
-    price: 4700,
-    resaleFactor: 0.50,
-    composition: 'Idle 40 W → Peak 240 W · LF 0,6 = 160 W',
-    color: '#7aa2ff',
-    bestFor: 'Stabile CUDA-Umgebung, Prototyping'
-  },
-  {
-    id: 'mbp-m5max',
-    name: 'Apple MacBook Pro · M5 Max',
-    short: 'M5 Max',
-    category: 'Unified Memory · Apple Silicon',
-    vram: 128,
-    tflops: 70,
-    bandwidth: 614,
-    powerKI: 55,
-    powerIdle: 12,
-    powerMax: 90,
-    price: 5100,
-    resaleFactor: 0.65,
-    composition: 'Hocheffizient · Last 60–90 W gemittelt',
-    color: '#d4b550',
-    bestFor: 'Mobil, niedrigste Stromkosten, hoher Wiederverkauf'
-  },
-  {
-    id: 'gmktec-evo-x2',
-    name: 'GMKtec EVO-X2 · AI Max+ 395',
-    short: 'EVO-X2',
-    category: 'Unified Memory · AMD APU',
-    vram: 128,
-    tflops: 63,
-    bandwidth: 256,
-    powerKI: 80,
-    powerIdle: 20,
-    powerMax: 120,
-    price: 3000,
-    resaleFactor: 0.45,
-    composition: 'TDP 120 W · KI-Last ca. 80 W',
-    color: '#d18158',
-    bestFor: 'Günstigster Einstieg in 128 GB Unified Memory',
-    note: '126 TOPS AI ≈ 63 TFLOPS FP16-Äquivalent'
-  },
-  {
-    id: 'ws-w7900',
-    name: 'Workstation · 1× Radeon W7900',
-    short: 'WS W7900',
-    category: 'Single-GPU Workstation',
-    vram: 48,
-    tflops: 61,
-    bandwidth: 864,
-    powerKI: 220,
-    powerIdle: 80,
-    powerMax: 420,
-    price: 5500,
-    resaleFactor: 0.35,
-    composition: 'PC 100 W + 1× GPU (~120 W)',
-    color: '#4dd081',
-    bestFor: 'Dichte Modelle bis 48 GB, hohe Bandbreite/€'
-  }
-];
+const HARDWARE = window.HARDWARE_CATALOGUE;
 
-const MODELS = [
-  {
-    id: 'ds-v4-pro',
-    name: 'DeepSeek V4 Pro',
-    total: 1600, active: 49, dense: false,
-    vram: 850, computeNeed: 10240, bandwidthNeed: 735,
-    context: 1000000, useCase: 'High-End Reasoning'
-  },
-  {
-    id: 'kimi-k26',
-    name: 'Kimi K2.6',
-    total: 1100, active: 32, dense: false,
-    vram: 640, computeNeed: 7040, bandwidthNeed: 480,
-    context: 262144, useCase: 'SOTA Agentic Coding'
-  },
-  {
-    id: 'glm-51-r',
-    name: 'GLM 5.1 Reasoning',
-    total: 754, active: 40, dense: false,
-    vram: 430, computeNeed: 4825, bandwidthNeed: 600,
-    context: 200000, useCase: 'Long-Horizon Agent'
-  },
-  {
-    id: 'ds-v4-flash',
-    name: 'DeepSeek V4 Flash',
-    total: 284, active: 13, dense: false,
-    vram: 175, computeNeed: 1817, bandwidthNeed: 195,
-    context: 1000000, useCase: 'Fast Agentic Reasoning'
-  },
-  {
-    id: 'qwen-36-235',
-    name: 'Qwen 3.6 (235B)',
-    total: 235, active: 22, dense: false,
-    vram: 150, computeNeed: 1504, bandwidthNeed: 330,
-    context: 1000000, useCase: 'Heavy Coding'
-  },
-  {
-    id: 'qwen-36-35',
-    name: 'Qwen 3.6 (35B)',
-    total: 35, active: 3.6, dense: false,
-    vram: 26, computeNeed: 224, bandwidthNeed: 54,
-    context: 262144, useCase: 'Effizienter Desktop-Agent'
-  },
-  {
-    id: 'glm-47-flash',
-    name: 'GLM 4.7 Flash',
-    total: 30, active: 3, dense: false,
-    vram: 22, computeNeed: 192, bandwidthNeed: 45,
-    context: 200000, useCase: 'Local Coding Assistant'
-  },
-  {
-    id: 'gemma-4',
-    name: 'Gemma 4 (31B)',
-    total: 31, active: 31, dense: true,
-    vram: 24, computeNeed: 198, bandwidthNeed: 465,
-    context: 256000, useCase: 'Qualität / Research'
-  },
-  {
-    id: 'qwen-36-27',
-    name: 'Qwen 3.6 (27B)',
-    total: 27, active: 27, dense: true,
-    vram: 20, computeNeed: 172, bandwidthNeed: 405,
-    context: 262144, useCase: 'SOTA Coding (Dense)'
-  }
-];
+// Mutable runtime model state. The catalogue is the full library; MODELS is
+// what the dashboard currently renders. The App component swaps these via
+// setActiveModels() / setCatalogue() whenever the user changes selection or
+// imports new entries from OpenRouter.
+window.MODELS_CATALOGUE_ORIGINAL = window.MODELS_CATALOGUE.slice();
+let MODELS_CATALOGUE = window.MODELS_CATALOGUE.slice();
+let MODELS = MODELS_CATALOGUE.slice();
+function setActiveModels(arr) { MODELS = arr; window.MODELS = arr; }
+function setCatalogue(arr)    { MODELS_CATALOGUE = arr; window.MODELS_CATALOGUE = arr; }
 
 /* --------- Compatibility maths --------- */
 function computeFit(hw, m) {
@@ -899,10 +1039,10 @@ window.MODELS = MODELS;
 window.computeFit = computeFit;
 window.monthlyEnergy = monthlyEnergy;
 window.tco = tco;
-</script>
+window.setActiveModels = setActiveModels;
+window.setCatalogue = setCatalogue;
 
-<script type="text/babel">
-/* Small reusable UI components for the dashboard. */
+/* ===== Reusable UI components ===== */
 
 const { useState, useMemo, useEffect, useRef } = React;
 
@@ -1296,14 +1436,17 @@ function Methodology() {
   );
 }
 
-Object.assign(window, { ControlBar, KPICards, SectionHead, DetailPanel, HardwareCards, Methodology, formatParams });
-</script>
-
-<script type="text/babel">
-/* The three main visualizations: matrix, scatter design-space, TCO chart. */
+/* ===== Main visualizations: matrix, scatter design-space, TCO chart ===== */
 
 /* ============ Compatibility Matrix ============ */
 function CompatibilityMatrix({ params, selection, setSelection, setTooltip }) {
+  if (MODELS.length === 0) {
+    return (
+      <div className="matrix-wrap">
+        <div className="matrix-empty">Keine Modelle ausgewählt. Wähle im Modell-Katalog oben mindestens eines aus.</div>
+      </div>
+    );
+  }
   const cols = `260px repeat(${MODELS.length}, minmax(96px, 1fr))`;
 
   return (
@@ -1669,13 +1812,279 @@ function TCOChart({ params, selection, setSelection, setTooltip }) {
   );
 }
 
-Object.assign(window, { CompatibilityMatrix, DesignSpaceChart, TCOChart });
-</script>
+/* ===== Model catalogue UI: search bar, multi-select, OpenRouter import =====
+   These components mutate the global MODELS array via setActiveModels()
+   and the catalogue via setCatalogue(). They drive every downstream
+   visualization (matrix, scatter, hardware-card pips). */
 
-<script type="text/babel">
-/* Main app — composes all sections. */
+/* Best-effort parameter extraction from a model name, e.g.
+ *   "Qwen 3.6 (235B)"      -> { total: 235 }
+ *   "DeepSeek 35B-A3.6B"   -> { total: 35, active: 3.6 }
+ */
+function parseParamsFromName(name) {
+  if (!name) return {};
+  const out = {};
+  const active = name.match(/[-A](\d+(?:\.\d+)?)\s*B\b/i);
+  if (active) out.active = parseFloat(active[1]);
+  const total = name.match(/(?:^|[^A-Za-z\d])(\d+(?:\.\d+)?)\s*B\b/i);
+  if (total) out.total = parseFloat(total[1]);
+  return out;
+}
 
-const { useState, useMemo, useEffect } = React;
+/* Convert an OpenRouter /api/v1/models entry into a dashboard model stub.
+ * OpenRouter does not expose params/VRAM/compute/bandwidth — the user must
+ * fill `total`/`active` for the matrix to compute meaningful numbers. */
+function mapOpenRouterModel(or) {
+  const guess = parseParamsFromName(or.name || '');
+  const dense = !/\bmoe\b|mixture/i.test(or.name || '') &&
+                !/[-A]\d+(?:\.\d+)?B/i.test(or.name || '');
+  return {
+    id: 'or-' + (or.id || or.name || '').replace(/[^a-z0-9-]/gi, '-').toLowerCase().slice(0, 60),
+    name: or.name || or.id,
+    total: guess.total ?? null,
+    active: guess.active ?? guess.total ?? null,
+    dense,
+    vram: null,
+    computeNeed: null,
+    bandwidthNeed: null,
+    context: or.context_length ?? null,
+    useCase: (or.description ?? '').replace(/\s+/g, ' ').trim().slice(0, 60),
+    sources: ['https://openrouter.ai/models/' + (or.id || '')],
+    verified: null,
+    notes: ['Imported from OpenRouter — verify total/active params before trusting matrix']
+  };
+}
+
+/* Apply README-documented derivations to fill missing math fields.
+ * VRAM uses a coarse 1.20× factor over Q4 weights to budget for KV cache;
+ * the actual KV depends on the runtime context length, so imported stubs
+ * should be treated as starting points and adjusted via the inline editor.
+ * Idempotent: never overwrites a value the user has set explicitly. */
+function deriveModelMath(m) {
+  if (m.total == null || m.active == null) return m;
+  return {
+    ...m,
+    vram:          m.vram          ?? Math.round(m.total  * 0.5 * 1.20),
+    computeNeed:   m.computeNeed   ?? Math.round(2 * m.total * 32000 / 10 / 1000),
+    bandwidthNeed: m.bandwidthNeed ?? Math.round(m.active * 0.5 * 30)
+  };
+}
+
+function isImported(m) {
+  return Array.isArray(m.notes) && m.notes.some(n => /Imported from OpenRouter/i.test(n));
+}
+
+/* --- Inline param editor for imported entries --- */
+function ParamEditor({ model, onChange }) {
+  return (
+    <div className="param-edit">
+      <label>
+        <span>Total B</span>
+        <input type="number" min="0" step="0.1"
+          value={model.total ?? ''}
+          placeholder="?"
+          onChange={(e) => onChange({ ...model, total: e.target.value === '' ? null : parseFloat(e.target.value), vram: null, computeNeed: null, bandwidthNeed: null })}
+          onClick={(e) => e.stopPropagation()} />
+      </label>
+      <label>
+        <span>Aktiv B</span>
+        <input type="number" min="0" step="0.1"
+          value={model.active ?? ''}
+          placeholder="?"
+          onChange={(e) => onChange({ ...model, active: e.target.value === '' ? null : parseFloat(e.target.value), vram: null, computeNeed: null, bandwidthNeed: null })}
+          onClick={(e) => e.stopPropagation()} />
+      </label>
+    </div>
+  );
+}
+
+/* --- Search + multi-select catalogue panel --- */
+function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, onClear, onUpdateModel, onRemoveModel, onOpenImport }) {
+  const [query, setQuery] = React.useState('');
+  const [expanded, setExpanded] = React.useState(true);
+
+  const filtered = catalogue.filter(m => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.id.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="catalogue-panel">
+      <div className="catalogue-head">
+        <div className="catalogue-title">
+          <button className="catalogue-toggle" onClick={() => setExpanded(!expanded)}>
+            {expanded ? '▾' : '▸'}
+          </button>
+          <span>Modell-Katalog</span>
+          <span className="catalogue-count">{selectedIds.length} / {catalogue.length} ausgewählt</span>
+        </div>
+        <div className="catalogue-actions">
+          <input type="search" className="catalogue-search"
+            placeholder="Suche nach Name oder ID …"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)} />
+          <button className="catalogue-btn" onClick={onSelectAll}>Alle</button>
+          <button className="catalogue-btn" onClick={onClear}>Keine</button>
+          <button className="catalogue-btn primary" onClick={onOpenImport}>+ OpenRouter</button>
+        </div>
+      </div>
+      {expanded && (
+        <div className="catalogue-list">
+          {filtered.length === 0 && (
+            <div className="catalogue-empty">Keine Treffer für „{query}".</div>
+          )}
+          {filtered.map(m => {
+            const checked = selectedIds.includes(m.id);
+            const imported = isImported(m);
+            return (
+              <label key={m.id} className={`catalogue-row ${checked ? 'on' : ''} ${imported ? 'imported' : ''}`}>
+                <input type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggle(m.id)} />
+                <div className="catalogue-row-main">
+                  <div className="catalogue-row-name">
+                    {m.name}
+                    {imported && <span className="catalogue-badge">OpenRouter</span>}
+                    {(m.total == null || m.active == null) && <span className="catalogue-badge needs-review">braucht Review</span>}
+                  </div>
+                  <div className="catalogue-row-meta">
+                    {m.total != null ? formatParams(m.total) : '?'} total
+                    {' · '}
+                    {m.active != null ? formatParams(m.active) : '?'} aktiv
+                    {' · '}
+                    {m.dense ? 'Dense' : 'MoE'}
+                    {m.context && ' · ' + (m.context/1000).toLocaleString('de-DE') + 'k ctx'}
+                  </div>
+                </div>
+                {imported && (
+                  <ParamEditor model={m} onChange={(updated) => onUpdateModel(updated)} />
+                )}
+                {imported && (
+                  <button className="catalogue-remove"
+                    title="Entfernen"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveModel(m.id); }}>
+                    ×
+                  </button>
+                )}
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* --- OpenRouter import modal --- */
+function OpenRouterImportModal({ open, onClose, onImport }) {
+  const [state, setState] = React.useState({ status: 'idle', models: [], error: null });
+  const [query, setQuery] = React.useState('');
+  const [picked, setPicked] = React.useState(new Set());
+
+  React.useEffect(() => {
+    if (!open || state.status !== 'idle') return;
+    setState({ status: 'loading', models: [], error: null });
+    fetch('https://openrouter.ai/api/v1/models')
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(json => {
+        const models = (json.data || []).slice().sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+        setState({ status: 'ready', models, error: null });
+      })
+      .catch(err => setState({ status: 'error', models: [], error: err.message || String(err) }));
+  }, [open, state.status]);
+
+  if (!open) return null;
+
+  const filtered = state.models.filter(m => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (m.name || '').toLowerCase().includes(q) || (m.id || '').toLowerCase().includes(q);
+  });
+
+  const togglePick = (id) => {
+    const next = new Set(picked);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setPicked(next);
+  };
+
+  const confirm = () => {
+    const chosen = state.models.filter(m => picked.has(m.id));
+    onImport(chosen);
+    setPicked(new Set());
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="modal-title">Import aus OpenRouter</div>
+            <div className="modal-sub">Live-Liste von <code>/api/v1/models</code> · Param-Counts müssen nach Import manuell gesetzt werden.</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        {state.status === 'loading' && (
+          <div className="modal-body modal-status">Lade OpenRouter-Modelle …</div>
+        )}
+        {state.status === 'error' && (
+          <div className="modal-body modal-status error">
+            <div><strong>Konnte OpenRouter nicht erreichen.</strong></div>
+            <div style={{marginTop: 6, fontSize: 12, color: 'var(--text-secondary)'}}>{state.error}</div>
+            <div style={{marginTop: 12, fontSize: 12, color: 'var(--text-tertiary)'}}>
+              Hinweis: Beim Öffnen über <code>file://</code> blockiert der Browser die Cross-Origin-Anfrage.
+              Starte stattdessen <code>python3 -m http.server</code> oder das mitgelieferte Docker-Image.
+            </div>
+            <button className="catalogue-btn" style={{marginTop: 12}}
+              onClick={() => setState({ status: 'idle', models: [], error: null })}>Erneut versuchen</button>
+          </div>
+        )}
+        {state.status === 'ready' && (
+          <>
+            <div className="modal-body">
+              <input type="search" className="catalogue-search" style={{width:'100%', marginBottom: 10}}
+                placeholder={`Filter ${state.models.length} Modelle …`}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)} />
+              <div className="modal-list">
+                {filtered.slice(0, 200).map(m => (
+                  <label key={m.id} className={`catalogue-row ${picked.has(m.id) ? 'on' : ''}`}>
+                    <input type="checkbox" checked={picked.has(m.id)} onChange={() => togglePick(m.id)} />
+                    <div className="catalogue-row-main">
+                      <div className="catalogue-row-name">{m.name || m.id}</div>
+                      <div className="catalogue-row-meta">
+                        <code>{m.id}</code>
+                        {m.context_length && ' · ' + (m.context_length/1000).toLocaleString('de-DE') + 'k ctx'}
+                        {m.architecture?.modality && ' · ' + m.architecture.modality}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+                {filtered.length > 200 && (
+                  <div className="catalogue-empty">… {filtered.length - 200} weitere ausgeblendet — präziser filtern.</div>
+                )}
+              </div>
+            </div>
+            <div className="modal-foot">
+              <span className="modal-count">{picked.size} ausgewählt</span>
+              <button className="catalogue-btn" onClick={onClose}>Abbrechen</button>
+              <button className="catalogue-btn primary" disabled={picked.size === 0} onClick={confirm}>
+                {picked.size} importieren
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ===== Main app — composes all sections ===== */
 
 const DEFAULT_PARAMS = {
   kWh: 0.315,
@@ -1700,21 +2109,97 @@ function Tooltip({ tip }) {
   );
 }
 
+const STORAGE_KEY_SELECTION = 'aiHwDash.selectedModelIds.v1';
+const STORAGE_KEY_CUSTOM    = 'aiHwDash.customModels.v1';
+
+function loadJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+
 function App() {
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const [selection, setSelection] = useState(null);
   const [tooltip, setTooltip] = useState(null);
+
+  // --- Model catalogue state ---
+  const [customModels, setCustomModels] = useState(() => loadJSON(STORAGE_KEY_CUSTOM, []));
+  const [selectedIds, setSelectedIds] = useState(() =>
+    loadJSON(STORAGE_KEY_SELECTION, window.MODELS_CATALOGUE.map(m => m.id))
+  );
+  const [importOpen, setImportOpen] = useState(false);
+
+  // Persist whenever they change
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_SELECTION, JSON.stringify(selectedIds)); }, [selectedIds]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customModels)); }, [customModels]);
+
+  // The full library = built-in catalogue ∪ custom imports, with derivations applied
+  const fullCatalogue = useMemo(() => {
+    const builtin = window.MODELS_CATALOGUE_ORIGINAL || window.MODELS_CATALOGUE;
+    return [...builtin, ...customModels].map(deriveModelMath);
+  }, [customModels]);
+
+  // Models with valid math + selected by user
+  const activeModels = useMemo(() => {
+    return fullCatalogue.filter(m =>
+      selectedIds.includes(m.id) &&
+      m.vram != null && m.computeNeed != null && m.bandwidthNeed != null
+    );
+  }, [fullCatalogue, selectedIds]);
+
+  // Sync globals before children render so HARDWARE/MODELS-reading components see the new arrays
+  window.setCatalogue(fullCatalogue);
+  window.setActiveModels(activeModels);
 
   // Auto-default selection on first load to highlight DGX Spark
   useEffect(() => {
     setSelection({ type: 'hw', hwId: 'dgx-spark' });
   }, []);
 
+  const toggleId = (id) => setSelectedIds(prev =>
+    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+  );
+  const selectAll = () => setSelectedIds(fullCatalogue.map(m => m.id));
+  const clearAll  = () => setSelectedIds([]);
+
+  const updateCustom = (updated) => setCustomModels(prev =>
+    prev.map(m => m.id === updated.id ? updated : m)
+  );
+  const removeCustom = (id) => {
+    setCustomModels(prev => prev.filter(m => m.id !== id));
+    setSelectedIds(prev => prev.filter(x => x !== id));
+  };
+  const importFromOpenRouter = (chosen) => {
+    const stubs = chosen.map(mapOpenRouterModel);
+    // De-dupe against existing custom models by id
+    const existingIds = new Set(customModels.map(m => m.id));
+    const fresh = stubs.filter(s => !existingIds.has(s.id));
+    setCustomModels(prev => [...prev, ...fresh]);
+    setSelectedIds(prev => [...prev, ...fresh.map(s => s.id)]);
+  };
+
   return (
     <>
       <ControlBar params={params} setParams={setParams} />
 
       <KPICards params={params} selectedHw={selection?.hwId} />
+
+      <ModelCataloguePanel
+        catalogue={fullCatalogue}
+        selectedIds={selectedIds}
+        onToggle={toggleId}
+        onSelectAll={selectAll}
+        onClear={clearAll}
+        onUpdateModel={updateCustom}
+        onRemoveModel={removeCustom}
+        onOpenImport={() => setImportOpen(true)} />
+
+      <OpenRouterImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImport={importFromOpenRouter} />
 
       <div className="section">
         <SectionHead num="01"
@@ -1769,9 +2254,9 @@ function App() {
       <div className="footer">
         <div>KI-Hosting Hardware-Dashboard · Quellen: AMD, Apple, NVIDIA, Skywork, TechPowerUp · Stand Q4 2026</div>
         <div className="footer-meta">
-          <span>9 Modelle</span>
-          <span>6 Hardware-Systeme</span>
-          <span>54 Kombinationen</span>
+          <span>{activeModels.length} Modelle</span>
+          <span>{HARDWARE.length} Hardware-Systeme</span>
+          <span>{activeModels.length * HARDWARE.length} Kombinationen</span>
         </div>
       </div>
 
