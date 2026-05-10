@@ -23,7 +23,7 @@
  *   bandwidthNeed = active * 0.5 * 30        (GB/s for 30 t/s, Q4)
  */
 
-const MODELS = [
+window.MODELS_CATALOGUE = [
   {
     id: 'ds-v4-pro',
     name: 'DeepSeek V4 Pro',
@@ -115,5 +115,3 @@ const MODELS = [
     notes: []
   }
 ];
-
-window.MODELS_CATALOGUE = MODELS;

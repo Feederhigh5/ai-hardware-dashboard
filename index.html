@@ -1041,10 +1041,8 @@ window.monthlyEnergy = monthlyEnergy;
 window.tco = tco;
 window.setActiveModels = setActiveModels;
 window.setCatalogue = setCatalogue;
-</script>
 
-<script type="text/babel">
-/* Small reusable UI components for the dashboard. */
+/* ===== Reusable UI components ===== */
 
 const { useState, useMemo, useEffect, useRef } = React;
 
@@ -1438,11 +1436,7 @@ function Methodology() {
   );
 }
 
-Object.assign(window, { ControlBar, KPICards, SectionHead, DetailPanel, HardwareCards, Methodology, formatParams });
-</script>
-
-<script type="text/babel">
-/* The three main visualizations: matrix, scatter design-space, TCO chart. */
+/* ===== Main visualizations: matrix, scatter design-space, TCO chart ===== */
 
 /* ============ Compatibility Matrix ============ */
 function CompatibilityMatrix({ params, selection, setSelection, setTooltip }) {
@@ -1818,11 +1812,7 @@ function TCOChart({ params, selection, setSelection, setTooltip }) {
   );
 }
 
-Object.assign(window, { CompatibilityMatrix, DesignSpaceChart, TCOChart });
-</script>
-
-<script type="text/babel">
-/* Model catalogue UI: search bar, multi-select, OpenRouter import.
+/* ===== Model catalogue UI: search bar, multi-select, OpenRouter import =====
    These components mutate the global MODELS array via setActiveModels()
    and the catalogue via setCatalogue(). They drive every downstream
    visualization (matrix, scatter, hardware-card pips). */
@@ -2094,16 +2084,7 @@ function OpenRouterImportModal({ open, onClose, onImport }) {
   );
 }
 
-Object.assign(window, {
-  ModelCataloguePanel, OpenRouterImportModal,
-  mapOpenRouterModel, deriveModelMath, parseParamsFromName, isImported
-});
-</script>
-
-<script type="text/babel">
-/* Main app — composes all sections. */
-
-const { useState, useMemo, useEffect } = React;
+/* ===== Main app — composes all sections ===== */
 
 const DEFAULT_PARAMS = {
   kWh: 0.315,

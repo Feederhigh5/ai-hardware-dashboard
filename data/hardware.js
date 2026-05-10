@@ -8,7 +8,7 @@
  *   notes    : array of free-text caveats (e.g. unit conversions)
  */
 
-const HARDWARE = [
+window.HARDWARE_CATALOGUE = [
   {
     id: 'server-4r9700',
     name: 'Server · EPYC 9135 + 4× R9700',
@@ -130,5 +130,3 @@ const HARDWARE = [
     notes: []
   }
 ];
-
-window.HARDWARE_CATALOGUE = HARDWARE;
