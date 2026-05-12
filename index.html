@@ -925,7 +925,8 @@ input[type="range"]::-moz-range-thumb {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.param-edit input {
+.param-edit input,
+.param-edit select {
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text-primary);
@@ -936,7 +937,9 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 2px;
   outline: none;
 }
-.param-edit input:focus { border-color: var(--accent-dim); }
+.param-edit select { width: 74px; }
+.param-edit input:disabled { opacity: 0.55; cursor: not-allowed; }
+.param-edit input:focus, .param-edit select:focus { border-color: var(--accent-dim); }
 
 /* Empty matrix state */
 .matrix-empty {
@@ -1123,7 +1126,7 @@ input[type="range"]::-moz-range-thumb {
   <div class="app-header-inner">
     <div class="eyebrow">Technologie-Evaluation · Q4 2026 · Live-Modell</div>
     <h1 class="app-title">KI-Hosting · Hardware-Dashboard 2026</h1>
-    <p class="app-subtitle">Interaktive Analyse von VRAM-Bedarf, Inferenz-Durchsatz und Total-Cost-of-Ownership zwischen Unified-Memory-Systemen und klassischen GPU-Workstations. Modellgewichte Q4 + TurboQuant KV-Cache.</p>
+    <p class="app-subtitle">Interaktive Analyse von VRAM-Bedarf, Inferenz-Durchsatz und Total-Cost-of-Ownership zwischen Unified-Memory-Systemen und klassischen GPU-Workstations. Modellgewichte mit katalogisierter Quantisierung + TurboQuant KV-Cache.</p>
   </div>
 </div>
 
@@ -1135,12 +1138,12 @@ input[type="range"]::-moz-range-thumb {
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- Curated catalogues. Edit data/hardware.js or data/models.js to add or fact-check entries. -->
-<script src="data/hardware.js"></script>
-<script src="data/models.js"></script>
+<!-- Curated catalogues. Edit input/hardware.js or input/models.js to add or fact-check entries. -->
+<script src="input/hardware.js"></script>
+<script src="input/models.js"></script>
 
 <script type="text/babel">
-/* Hardware + Model data are loaded from data/hardware.js and data/models.js.
+/* Hardware + Model data are loaded from input/hardware.js and input/models.js.
    The MODELS variable below is the *active* selection — populated and updated
    by the Model Catalogue panel in the App. */
 
@@ -1165,7 +1168,7 @@ function setActiveHardware(arr) { HARDWARE = arr; window.HARDWARE = arr; }
 function computeFit(hw, m) {
   const fitsVRAM = hw.vram >= m.vram;
   // Memory-bandwidth-bound TPS for token generation
-  const tps = hw.bandwidth / (m.active * 0.5);
+  const tps = hw.bandwidth / (m.active * getModelWeightBytes(m));
   // Prefill (32k tokens) time in seconds; <10 s = goal
   const prefillSec = 10 * (m.computeNeed / hw.tflops);
 
@@ -1248,6 +1251,17 @@ function ControlBar({ params, setParams }) {
 
 /* --- KPI Cards (responsive to params + selection) --- */
 function KPICards({ params, selectedHw }) {
+  if (HARDWARE.length === 0) {
+    return (
+      <div className="kpi-grid">
+        <div className="kpi" style={{gridColumn: '1 / -1'}}>
+          <div className="kpi-label">Keine Hardware ausgewählt</div>
+          <div className="kpi-detail">Wähle im Hardware-Katalog mindestens ein System aus.</div>
+        </div>
+      </div>
+    );
+  }
+
   const cheapest = HARDWARE.reduce((a, b) =>
     monthlyEnergy(a, params) < monthlyEnergy(b, params) ? a : b
   );
@@ -1308,20 +1322,27 @@ function SectionHead({ num, title, sub }) {
 }
 
 /* --- Detail panel — appears under matrix when a cell or axis is selected --- */
+function EmptyDetailPanel({ message }) {
+  return (
+    <div className="detail-panel">
+      <div className="detail-empty" style={{gridColumn:'1 / -1'}}>
+        {message}
+      </div>
+    </div>
+  );
+}
+
 function DetailPanel({ selection, params }) {
   if (!selection) {
-    return (
-      <div className="detail-panel">
-        <div className="detail-empty" style={{gridColumn:'1 / -1'}}>
-          Wähle eine Zelle der Matrix, eine Hardware-Zeile oder ein Modell für detaillierte Analyse
-        </div>
-      </div>
-    );
+    return <EmptyDetailPanel message="Wähle eine Zelle der Matrix, eine Hardware-Zeile oder ein Modell für detaillierte Analyse" />;
   }
 
   if (selection.type === 'cell') {
     const hw = HARDWARE.find(h => h.id === selection.hwId);
     const m = MODELS.find(x => x.id === selection.modelId);
+    if (!hw || !m) {
+      return <EmptyDetailPanel message="Diese Auswahl ist nicht mehr aktiv. Wähle eine sichtbare Hardware oder ein Modell." />;
+    }
     const fit = computeFit(hw, m);
     const energy = monthlyEnergy(hw, params);
 
@@ -1368,9 +1389,11 @@ function DetailPanel({ selection, params }) {
           <div className="detail-row"><span className="detail-key">Architektur</span>
             <span className="detail-val">{m.dense ? 'Dense' : `MoE`}</span></div>
           <div className="detail-row"><span className="detail-key">Parameter (total/aktiv)</span>
-            <span className="detail-val">{formatParams(m.total)} / {formatParams(m.active)}</span></div>
+            <span className="detail-val">{formatModelParamSummary(m)}</span></div>
+          <div className="detail-row"><span className="detail-key">Quantisierung</span>
+            <span className="detail-val">{m.quantization ?? DEFAULT_QUANTIZATION} · {getModelWeightBytes(m)} B/Param</span></div>
           <div className="detail-row"><span className="detail-key">Kontext-Maximum</span>
-            <span className="detail-val">{(m.context/1000).toLocaleString('de-DE')}k</span></div>
+            <span className="detail-val">{formatContext(m.context)}</span></div>
           <div className="detail-row"><span className="detail-key">Use-Case</span>
             <span className="detail-val" style={{fontFamily: 'var(--font-sans)', fontSize: 11}}>{m.useCase}</span></div>
         </div>
@@ -1380,6 +1403,9 @@ function DetailPanel({ selection, params }) {
 
   if (selection.type === 'hw') {
     const hw = HARDWARE.find(h => h.id === selection.hwId);
+    if (!hw) {
+      return <EmptyDetailPanel message="Diese Hardware ist nicht mehr ausgewählt. Wähle ein sichtbares System aus dem Katalog." />;
+    }
     const fits = MODELS.map(m => ({m, fit: computeFit(hw, m)}));
     const ideal = fits.filter(x => x.fit.status === 'ideal').length;
     const usable = fits.filter(x => x.fit.status === 'usable').length;
@@ -1433,6 +1459,9 @@ function DetailPanel({ selection, params }) {
 
   if (selection.type === 'model') {
     const m = MODELS.find(x => x.id === selection.modelId);
+    if (!m) {
+      return <EmptyDetailPanel message="Dieses Modell ist nicht mehr ausgewählt. Wähle ein sichtbares Modell aus dem Katalog." />;
+    }
     const fits = HARDWARE.map(hw => ({hw, fit: computeFit(hw, m)}));
     const ideals = fits.filter(x => x.fit.status === 'ideal');
     const usables = fits.filter(x => x.fit.status === 'usable');
@@ -1445,17 +1474,17 @@ function DetailPanel({ selection, params }) {
           <div style={{fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12}}>{m.useCase}</div>
           <div className="detail-row"><span className="detail-key">Architektur</span>
             <span className="detail-val">{m.dense ? 'Dense' : 'Mixture-of-Experts'}</span></div>
-          <div className="detail-row"><span className="detail-key">Parameter (Total)</span>
-            <span className="detail-val">{formatParams(m.total)}</span></div>
-          <div className="detail-row"><span className="detail-key">Aktive Parameter</span>
-            <span className="detail-val">{formatParams(m.active)}</span></div>
+          <div className="detail-row"><span className="detail-key">Parameter</span>
+            <span className="detail-val">{formatModelParamSummary(m)}</span></div>
+          <div className="detail-row"><span className="detail-key">Quantisierung</span>
+            <span className="detail-val">{m.quantization ?? DEFAULT_QUANTIZATION} · {getModelWeightBytes(m)} B/Param</span></div>
           <div className="detail-row"><span className="detail-key">Max Kontext</span>
-            <span className="detail-val">{(m.context/1000).toLocaleString('de-DE')}k Tokens</span></div>
+            <span className="detail-val">{formatContext(m.context)} Tokens</span></div>
         </div>
 
         <div className="detail-section">
           <h4>Hardware-Anforderungen</h4>
-          <div className="detail-row"><span className="detail-key">VRAM (Q4 + TQ KV)</span>
+          <div className="detail-row"><span className="detail-key">VRAM ({m.quantization ?? DEFAULT_QUANTIZATION} + TQ KV)</span>
             <span className="detail-val">{m.vram} GB</span></div>
           <div className="detail-row"><span className="detail-key">Compute · 32k Prefill ≤10 s</span>
             <span className="detail-val">{m.computeNeed.toLocaleString('de-DE')} TFLOPS</span></div>
@@ -1514,6 +1543,10 @@ function formatParams(n) {
   return n.toFixed(1) + 'B';
 }
 
+function formatContext(context) {
+  return context != null ? (context/1000).toLocaleString('de-DE') + 'k' : '?';
+}
+
 /* --- Hardware cards --- */
 function HardwareCards({ params, activeHw, onSelect }) {
   return (
@@ -1564,8 +1597,8 @@ function Methodology() {
     <div className="methodology">
       <div className="methodology-block">
         <h5>VRAM-Bedarf</h5>
-        <span className="formula">Total Params × 0,5 GB (Q4) + KV-Cache (TQ)</span>
-        TurboQuant spart ~75–80 % VRAM ggü. FP16-Caches. Werte beziehen sich auf den maximalen Modellkontext.
+        <span className="formula">Total Params × Bytes/Param × 1,20</span>
+        Bytes/Param kommt aus der Modell-Quantisierung (Q4≈0,5; Q8≈1; F16=2). Der Faktor budgetiert KV-Cache-Headroom.
       </div>
       <div className="methodology-block">
         <h5>Compute · 32k Prefill</h5>
@@ -1574,7 +1607,7 @@ function Methodology() {
       </div>
       <div className="methodology-block">
         <h5>Durchsatz · 30 t/s</h5>
-        <span className="formula">Aktiv-Params × 0,5 Byte (Q4) × 30 t/s</span>
+        <span className="formula">Aktiv-Params × Bytes/Param × 30 t/s</span>
         Generation ist memory-bandwidth-bound. Durchsatz skaliert linear mit der Speicher-Bandbreite des Systems.
       </div>
       <div className="methodology-block">
@@ -1611,6 +1644,13 @@ function CompatibilityMatrix({ params, selection, setSelection, setTooltip }) {
       </div>
     );
   }
+  if (HARDWARE.length === 0) {
+    return (
+      <div className="matrix-wrap">
+        <div className="matrix-empty">Keine Hardware ausgewählt. Wähle im Hardware-Katalog oben mindestens ein System aus.</div>
+      </div>
+    );
+  }
   const cols = `260px repeat(${MODELS.length}, minmax(96px, 1fr))`;
 
   return (
@@ -1630,8 +1670,8 @@ function CompatibilityMatrix({ params, selection, setSelection, setTooltip }) {
               className={`cell header-col ${isSelectedAxis ? 'selected-axis' : ''}`}
               onClick={() => setSelection({ type: 'model', modelId: m.id })}>
               <div className="model-name">{m.name}</div>
-              <div className="model-meta">{formatParams(m.total)} / {formatParams(m.active)} {m.dense ? 'dense' : 'MoE'}</div>
-              <div className="model-meta">{m.vram} GB · {(m.context/1000).toLocaleString('de-DE')}k</div>
+              <div className="model-meta">{formatModelParamSummary(m)} · {m.quantization ?? DEFAULT_QUANTIZATION}</div>
+              <div className="model-meta">{m.vram} GB · {formatContext(m.context)}</div>
             </div>
           );
         })}
@@ -1799,7 +1839,8 @@ function DesignSpaceChart({ selection, setSelection, setTooltip }) {
                   x: e.clientX, y: e.clientY,
                   title: m.name,
                   rows: [
-                    ['Total / Aktiv', `${formatParams(m.total)} / ${formatParams(m.active)}`],
+                    ['Parameter', formatModelParamSummary(m)],
+                    ['Quantisierung', `${m.quantization ?? DEFAULT_QUANTIZATION} · ${getModelWeightBytes(m)} B/Param`],
                     ['VRAM', `${m.vram} GB`],
                     ['Bandbreite', `${m.bandwidthNeed} GB/s`],
                     ['Compute', `${m.computeNeed.toLocaleString('de-DE')} TFLOPS`]
@@ -1833,6 +1874,16 @@ function TCOChart({ params, selection, setSelection, setTooltip }) {
   const margin = { top: 20, right: 40, bottom: 60, left: 56 };
   const innerW = W - margin.left - margin.right;
   const innerH = H - margin.top - margin.bottom;
+
+  if (HARDWARE.length === 0) {
+    return (
+      <div className="tco-grid">
+        <div className="tco-wrap" style={{gridColumn: '1 / -1'}}>
+          <div className="matrix-empty">Keine Hardware ausgewählt. Wähle im Hardware-Katalog mindestens ein System aus, um TCO-Werte zu sehen.</div>
+        </div>
+      </div>
+    );
+  }
 
   const data = HARDWARE.map(hw => ({
     hw,
@@ -1981,18 +2032,59 @@ function TCOChart({ params, selection, setSelection, setTooltip }) {
    and the catalogue via setCatalogue(). They drive every downstream
    visualization (matrix, scatter, hardware-card pips). */
 
+const DEFAULT_QUANTIZATION = 'Q4';
+const DEFAULT_WEIGHT_BYTES = 0.5;
+
 /* Best-effort parameter extraction from a model name, e.g.
  *   "Qwen 3.6 (235B)"      -> { total: 235 }
  *   "DeepSeek 35B-A3.6B"   -> { total: 35, active: 3.6 }
+ *   "Mixtral 8x7B"         -> { total: 56, expertCount: 8, expertSize: 7 }
  */
 function parseParamsFromName(name) {
   if (!name) return {};
   const out = {};
-  const active = name.match(/[-A](\d+(?:\.\d+)?)\s*B\b/i);
+  const text = String(name);
+  const experts = text.match(/(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*B\b/i);
+  if (experts) {
+    out.expertCount = parseInt(experts[1], 10);
+    out.expertSize = parseFloat(experts[2]);
+    out.total = Math.round(out.expertCount * out.expertSize * 10) / 10;
+  }
+  const active = text.match(/(?:^|[-_\s(])A(\d+(?:\.\d+)?)\s*B\b/i);
   if (active) out.active = parseFloat(active[1]);
-  const total = name.match(/(?:^|[^A-Za-z\d])(\d+(?:\.\d+)?)\s*B\b/i);
-  if (total) out.total = parseFloat(total[1]);
+  const totals = [...text.matchAll(/(?:^|[^A-Za-z\d])(\d+(?:\.\d+)?)\s*B\b/gi)]
+    .map(m => parseFloat(m[1]));
+  if (totals.length && out.total == null) out.total = Math.max(...totals);
   return out;
+}
+
+function inferDenseFromName(name, guess = parseParamsFromName(name)) {
+  const text = String(name || '');
+  const looksMoe = /\bmoe\b|mixture|experts?|[-_\s(]A\d+(?:\.\d+)?\s*B\b|\d+\s*x\s*\d+(?:\.\d+)?\s*B\b/i.test(text);
+  return !(looksMoe || guess.active != null || guess.expertCount != null);
+}
+
+function quantizationBytes(quantization) {
+  if (!quantization) return null;
+  const q = String(quantization).toUpperCase();
+  if (q === 'F32') return 4;
+  if (q === 'F16' || q === 'BF16') return 2;
+  const bitMatch = q.match(/^(?:IQ|Q)(\d+(?:\.\d+)?)/);
+  return bitMatch ? parseFloat(bitMatch[1]) / 8 : null;
+}
+
+function getModelWeightBytes(m) {
+  return m.weightBytes ?? quantizationBytes(m.quantization) ?? DEFAULT_WEIGHT_BYTES;
+}
+
+function resetDerivedMath(model) {
+  return { ...model, vram: null, computeNeed: null, bandwidthNeed: null };
+}
+
+function formatModelParamSummary(m) {
+  if (m.total == null) return '? params';
+  if (m.dense) return `${formatParams(m.total)} dense`;
+  return `${formatParams(m.total)} / ${m.active != null ? formatParams(m.active) : '?'} MoE`;
 }
 
 /* Convert an OpenRouter /api/v1/models entry into a dashboard model stub.
@@ -2000,14 +2092,15 @@ function parseParamsFromName(name) {
  * fill `total`/`active` for the matrix to compute meaningful numbers. */
 function mapOpenRouterModel(or) {
   const guess = parseParamsFromName(or.name || '');
-  const dense = !/\bmoe\b|mixture/i.test(or.name || '') &&
-                !/[-A]\d+(?:\.\d+)?B/i.test(or.name || '');
+  const dense = inferDenseFromName(or.name || '', guess);
   return {
     id: 'or-' + (or.id || or.name || '').replace(/[^a-z0-9-]/gi, '-').toLowerCase().slice(0, 60),
     name: or.name || or.id,
     total: guess.total ?? null,
-    active: guess.active ?? guess.total ?? null,
+    active: guess.active ?? (dense ? guess.total : null) ?? null,
     dense,
+    quantization: DEFAULT_QUANTIZATION,
+    weightBytes: DEFAULT_WEIGHT_BYTES,
     vram: null,
     computeNeed: null,
     bandwidthNeed: null,
@@ -2020,17 +2113,24 @@ function mapOpenRouterModel(or) {
 }
 
 /* Apply README-documented derivations to fill missing math fields.
- * VRAM uses a coarse 1.20× factor over Q4 weights to budget for KV cache;
- * the actual KV depends on the runtime context length, so imported stubs
- * should be treated as starting points and adjusted via the inline editor.
- * Idempotent: never overwrites a value the user has set explicitly. */
+ * VRAM uses a coarse 1.20× factor over quantized weights to budget for KV
+ * cache; the actual KV depends on runtime context length. Idempotent: never
+ * overwrites a value the user has set explicitly. */
 function deriveModelMath(m) {
-  if (m.total == null || m.active == null) return m;
+  if (m.total == null) return m;
+  const dense = m.dense ?? true;
+  const active = m.active ?? (dense ? m.total : null);
+  if (active == null) return { ...m, dense, active };
+  const weightBytes = getModelWeightBytes(m);
   return {
     ...m,
-    vram:          m.vram          ?? Math.round(m.total  * 0.5 * 1.20),
+    dense,
+    active,
+    quantization: m.quantization ?? DEFAULT_QUANTIZATION,
+    weightBytes,
+    vram:          m.vram          ?? Math.round(m.total  * weightBytes * 1.20),
     computeNeed:   m.computeNeed   ?? Math.round(2 * m.total * 32000 / 10 / 1000),
-    bandwidthNeed: m.bandwidthNeed ?? Math.round(m.active * 0.5 * 30)
+    bandwidthNeed: m.bandwidthNeed ?? Math.round(active * weightBytes * 30)
   };
 }
 
@@ -2065,25 +2165,30 @@ function formatBytes(bytes) {
   return (bytes / 1e6).toFixed(0) + ' MB';
 }
 
-/* Build a dashboard model stub from a HuggingFace GGUF file. VRAM is taken
- * from the actual file size (× 1.2 for KV-cache headroom) when available;
- * compute / bandwidth needs are left null until the user adjusts params. */
+/* Build a dashboard model stub from a HuggingFace GGUF file. The selected
+ * quantization drives both VRAM estimates and bandwidth-bound TPS. */
 function mapHFQuantToModel(modelId, quant) {
   const shortName = modelId.split('/').pop().replace(/-GGUF$/i, '');
   const quantName = quant?.name || 'unknown';
-  const guess = parseParamsFromName(shortName);
+  const sourceName = [modelId, shortName, quant?.filename, quant?.modelMeta].filter(Boolean).join(' ');
+  const guess = parseParamsFromName(sourceName);
+  const dense = inferDenseFromName(sourceName, guess);
   const totalB = guess.total ?? null;
+  const activeB = guess.active ?? (dense ? totalB : null);
+  const weightBytes = quant?.weightBytes ?? quantizationBytes(quantName) ?? DEFAULT_WEIGHT_BYTES;
   const vramFromFile = quant?.size != null
     ? Math.round((quant.size / 1e9) * 1.2 * 10) / 10
     : null;
-  const vram = vramFromFile ?? (totalB != null ? Math.round(totalB * 0.5 * 1.2) : null);
+  const vram = vramFromFile ?? (totalB != null ? Math.round(totalB * weightBytes * 1.2) : null);
   return {
     id: ('hf-' + modelId.replace(/[^a-z0-9]/gi, '-') + '-' + quantName)
           .toLowerCase().replace(/-+/g, '-').slice(0, 80),
     name: shortName + ' (' + quantName + ')',
     total: totalB,
-    active: totalB,
-    dense: true,
+    active: activeB,
+    dense,
+    quantization: quantName,
+    weightBytes,
     vram,
     computeNeed: null,
     bandwidthNeed: null,
@@ -2091,20 +2196,48 @@ function mapHFQuantToModel(modelId, quant) {
     useCase: 'Imported from HuggingFace',
     sources: ['https://huggingface.co/' + modelId],
     verified: null,
-    notes: ['GGUF ' + quantName + ' · VRAM estimated from file size · verify params before trusting matrix']
+    notes: [
+      'GGUF ' + quantName + ' · ' + (dense ? 'Dense' : 'MoE') +
+      ' · ' + weightBytes + ' bytes/param' +
+      ' · VRAM estimated from file size · verify params before trusting matrix'
+    ]
   };
 }
 
 /* --- Inline param editor for imported entries --- */
 function ParamEditor({ model, onChange }) {
+  const updateTotal = (raw) => {
+    const total = raw === '' ? null : parseFloat(raw);
+    const next = { ...model, total };
+    if (model.dense) next.active = total;
+    onChange(resetDerivedMath(next));
+  };
+  const updateActive = (raw) => {
+    const active = raw === '' ? null : parseFloat(raw);
+    onChange(resetDerivedMath({ ...model, active }));
+  };
+  const updateDense = (dense) => {
+    const nextActive = dense ? model.total : (model.active === model.total ? null : model.active);
+    onChange(resetDerivedMath({ ...model, dense, active: nextActive }));
+  };
+
   return (
     <div className="param-edit">
+      <label>
+        <span>Architektur</span>
+        <select value={model.dense ? 'dense' : 'moe'}
+          onChange={(e) => updateDense(e.target.value === 'dense')}
+          onClick={(e) => e.stopPropagation()}>
+          <option value="dense">Dense</option>
+          <option value="moe">MoE</option>
+        </select>
+      </label>
       <label>
         <span>Total B</span>
         <input type="number" min="0" step="0.1"
           value={model.total ?? ''}
           placeholder="?"
-          onChange={(e) => onChange({ ...model, total: e.target.value === '' ? null : parseFloat(e.target.value), vram: null, computeNeed: null, bandwidthNeed: null })}
+          onChange={(e) => updateTotal(e.target.value)}
           onClick={(e) => e.stopPropagation()} />
       </label>
       <label>
@@ -2112,7 +2245,8 @@ function ParamEditor({ model, onChange }) {
         <input type="number" min="0" step="0.1"
           value={model.active ?? ''}
           placeholder="?"
-          onChange={(e) => onChange({ ...model, active: e.target.value === '' ? null : parseFloat(e.target.value), vram: null, computeNeed: null, bandwidthNeed: null })}
+          disabled={model.dense}
+          onChange={(e) => updateActive(e.target.value)}
           onClick={(e) => e.stopPropagation()} />
       </label>
     </div>
@@ -2237,12 +2371,10 @@ function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, on
                     {(m.total == null || m.active == null) && <span className="catalogue-badge needs-review">braucht Review</span>}
                   </div>
                   <div className="catalogue-row-meta">
-                    {m.total != null ? formatParams(m.total) : '?'} total
+                    {formatModelParamSummary(m)}
                     {' · '}
-                    {m.active != null ? formatParams(m.active) : '?'} aktiv
-                    {' · '}
-                    {m.dense ? 'Dense' : 'MoE'}
-                    {m.context && ' · ' + (m.context/1000).toLocaleString('de-DE') + 'k ctx'}
+                    {m.quantization ?? DEFAULT_QUANTIZATION}
+                    {m.context && ' · ' + formatContext(m.context) + ' ctx'}
                   </div>
                 </div>
                 {userImport && (
@@ -2438,6 +2570,16 @@ function HuggingFaceImportModal({ open, onClose, onImport }) {
       })
       .then(data => {
         const siblings = data.siblings || [];
+        const modelMeta = [
+          data.id || data.modelId,
+          data.cardData?.base_model,
+          Array.isArray(data.tags) ? data.tags.join(' ') : null,
+          data.config?.model_type,
+          Array.isArray(data.config?.architectures) ? data.config.architectures.join(' ') : null,
+          data.config?.num_experts != null ? 'experts' : null,
+          data.config?.num_local_experts != null ? 'experts' : null,
+          data.config?.num_experts_per_tok != null ? 'experts' : null
+        ].filter(Boolean).join(' ');
         // Filter for .gguf files and group by quantization name. Keep the
         // largest file when multiple shards share a quant name so the VRAM
         // estimate reflects the full weights.
@@ -2446,10 +2588,11 @@ function HuggingFaceImportModal({ open, onClose, onImport }) {
         for (const f of ggufFiles) {
           const name = parseQuantName(f.rfilename);
           const size = (f.size != null) ? f.size : (f.lfs?.size != null ? f.lfs.size : null);
-          if (!grouped[name] || (size != null && grouped[name].size != null && size > grouped[name].size)) {
-            grouped[name] = { name, filename: f.rfilename, size };
+          const weightBytes = quantizationBytes(name) ?? DEFAULT_WEIGHT_BYTES;
+          if (!grouped[name] || (size != null && (grouped[name].size == null || size > grouped[name].size))) {
+            grouped[name] = { name, filename: f.rfilename, size, weightBytes, modelMeta };
           }
-          if (!grouped[name]) grouped[name] = { name, filename: f.rfilename, size };
+          if (!grouped[name]) grouped[name] = { name, filename: f.rfilename, size, weightBytes, modelMeta };
         }
         const items = Object.values(grouped).sort((a, b) => {
           if (a.size == null && b.size == null) return a.name.localeCompare(b.name);
@@ -2578,6 +2721,7 @@ function HuggingFaceImportModal({ open, onClose, onImport }) {
                           const vramGB = (q.size != null)
                             ? Math.round((q.size / 1e9) * 1.2 * 10) / 10
                             : null;
+                          const weightBytes = q.weightBytes ?? quantizationBytes(q.name) ?? DEFAULT_WEIGHT_BYTES;
                           return (
                             <label key={q.name} className={`quant-row ${isPicked ? 'picked' : ''}`}>
                               <input type="checkbox" checked={isPicked}
@@ -2587,6 +2731,7 @@ function HuggingFaceImportModal({ open, onClose, onImport }) {
                                 <div className="quant-row-meta">
                                   {formatBytes(q.size)}
                                   {vramGB != null && ' · ~' + vramGB + ' GB VRAM'}
+                                  {' · '}{weightBytes} B/Param
                                   {' · '}<span style={{color:'var(--text-tertiary)'}}>{q.filename}</span>
                                 </div>
                               </div>
@@ -2689,7 +2834,9 @@ function App() {
 
   // Hardware filtered by the user's catalogue selection
   const activeHardware = useMemo(() => {
-    return window.HARDWARE_CATALOGUE.filter(h => selectedHwIds.includes(h.id));
+    return window.HARDWARE_CATALOGUE
+      .filter(h => selectedHwIds.includes(h.id))
+      .sort((a, b) => b.tflops - a.tflops);
   }, [selectedHwIds]);
 
   // Sync globals before children render so HARDWARE/MODELS-reading components see the new arrays
@@ -2697,9 +2844,10 @@ function App() {
   window.setActiveModels(activeModels);
   window.setActiveHardware(activeHardware);
 
-  // Auto-default selection on first load to highlight DGX Spark
+  // Auto-default selection on first load to highlight DGX Spark when it is visible.
   useEffect(() => {
-    setSelection({ type: 'hw', hwId: 'dgx-spark' });
+    const initialHardware = activeHardware.find(h => h.id === 'dgx-spark') || activeHardware[0];
+    setSelection(initialHardware ? { type: 'hw', hwId: initialHardware.id } : null);
   }, []);
 
   const toggleId = (id) => setSelectedIds(prev =>
@@ -2731,11 +2879,19 @@ function App() {
   };
 
   // --- Hardware catalogue handlers ---
-  const toggleHwId = (id) => setSelectedHwIds(prev =>
-    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-  );
+  const toggleHwId = (id) => {
+    setSelectedHwIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelection(current => {
+      if (!current) return current;
+      const usesHardware = (current.type === 'hw' || current.type === 'cell') && current.hwId === id;
+      return usesHardware ? null : current;
+    });
+  };
   const selectAllHw = () => setSelectedHwIds(window.HARDWARE_CATALOGUE.map(h => h.id));
-  const clearAllHw  = () => setSelectedHwIds([]);
+  const clearAllHw  = () => {
+    setSelectedHwIds([]);
+    setSelection(current => (current?.type === 'hw' || current?.type === 'cell') ? null : current);
+  };
 
   return (
     <>
@@ -2816,7 +2972,7 @@ function App() {
       <div className="section">
         <SectionHead num="05"
           title="Methodik · Berechnungsformeln"
-          sub="Transparenz über alle abgeleiteten Werte. Q4-Quantisierung für Gewichte, TurboQuant (TQ) für KV-Cache." />
+          sub="Transparenz über alle abgeleiteten Werte. Gewichts-Quantisierung aus dem Modell, TurboQuant (TQ) als KV-Cache-Headroom." />
         <Methodology />
       </div>
 
