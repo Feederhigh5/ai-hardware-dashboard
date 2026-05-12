@@ -800,6 +800,97 @@ input[type="range"]::-moz-range-thumb {
   background: var(--usable-bg);
   color: var(--usable);
 }
+.catalogue-badge.hf {
+  background: rgba(255, 157, 0, 0.12);
+  color: #ff9d00;
+}
+.catalogue-row.hf-import { border-left: 2px solid #ff9d00; }
+.catalogue-btn.hf {
+  background: rgba(255, 157, 0, 0.08);
+  border-color: rgba(255, 157, 0, 0.3);
+  color: #ff9d00;
+}
+.catalogue-btn.hf:hover { background: rgba(255, 157, 0, 0.16); }
+
+/* HuggingFace modal — model row with expand toggle + nested quant list */
+.hf-model-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.hf-model-row:hover { background: var(--surface); }
+.hf-model-main { flex: 1; min-width: 0; }
+.hf-model-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hf-model-meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.model-expand-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.model-expand-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.quant-list {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.quant-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 36px;
+  cursor: pointer;
+  font-size: 11.5px;
+  border-top: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.quant-row:first-child { border-top: none; }
+.quant-row:hover { background: var(--surface-2); }
+.quant-row.picked { background: var(--accent-bg); }
+.quant-row input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.quant-row-main { flex: 1; min-width: 0; }
+.quant-row-name {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.quant-row-meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+.quant-empty {
+  padding: 10px 12px 10px 36px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-size: 11.5px;
+  border-top: 1px solid var(--border);
+}
 .catalogue-empty {
   padding: 20px 14px;
   color: var(--text-tertiary);
@@ -1053,7 +1144,11 @@ input[type="range"]::-moz-range-thumb {
    The MODELS variable below is the *active* selection — populated and updated
    by the Model Catalogue panel in the App. */
 
-const HARDWARE = window.HARDWARE_CATALOGUE;
+// Mutable runtime hardware state. HARDWARE_CATALOGUE is the full library;
+// HARDWARE is what the dashboard currently renders. The App component swaps
+// it via setActiveHardware() when the user toggles items in the Hardware
+// Catalogue panel.
+let HARDWARE = window.HARDWARE_CATALOGUE;
 
 // Mutable runtime model state. The catalogue is the full library; MODELS is
 // what the dashboard currently renders. The App component swaps these via
@@ -1062,8 +1157,9 @@ const HARDWARE = window.HARDWARE_CATALOGUE;
 window.MODELS_CATALOGUE_ORIGINAL = window.MODELS_CATALOGUE.slice();
 let MODELS_CATALOGUE = window.MODELS_CATALOGUE.slice();
 let MODELS = MODELS_CATALOGUE.slice();
-function setActiveModels(arr) { MODELS = arr; window.MODELS = arr; }
-function setCatalogue(arr)    { MODELS_CATALOGUE = arr; window.MODELS_CATALOGUE = arr; }
+function setActiveModels(arr)   { MODELS = arr; window.MODELS = arr; }
+function setCatalogue(arr)      { MODELS_CATALOGUE = arr; window.MODELS_CATALOGUE = arr; }
+function setActiveHardware(arr) { HARDWARE = arr; window.HARDWARE = arr; }
 
 /* --------- Compatibility maths --------- */
 function computeFit(hw, m) {
@@ -1108,6 +1204,7 @@ window.monthlyEnergy = monthlyEnergy;
 window.tco = tco;
 window.setActiveModels = setActiveModels;
 window.setCatalogue = setCatalogue;
+window.setActiveHardware = setActiveHardware;
 
 /* ===== Reusable UI components ===== */
 
@@ -1941,6 +2038,63 @@ function isImported(m) {
   return Array.isArray(m.notes) && m.notes.some(n => /Imported from OpenRouter/i.test(n));
 }
 
+function isHfImport(m) {
+  return Array.isArray(m.notes) && m.notes.some(n => /^GGUF /.test(n));
+}
+
+function isUserImported(m) {
+  return isImported(m) || isHfImport(m);
+}
+
+/* Parse a GGUF filename like "Meta-Llama-3.1-8B-Instruct.Q4_K_M.gguf" and
+ * return the quantization suffix ("Q4_K_M"). Falls back to the last dash
+ * segment without the .gguf extension if no known pattern matches. */
+function parseQuantName(filename) {
+  const m = filename.match(/(IQ\d[_\w]*|Q\d[_K]*[_SMXL0]*|F16|BF16|F32)/i);
+  if (m) return m[1].toUpperCase();
+  const base = filename.replace(/\.gguf$/i, '');
+  const parts = base.split(/[-.]/);
+  return (parts[parts.length - 1] || 'unknown').toUpperCase();
+}
+
+/* Format a byte count into a human-readable string (MB / GB). */
+function formatBytes(bytes) {
+  if (bytes == null) return '?';
+  const gb = bytes / 1e9;
+  if (gb >= 1) return gb.toFixed(2) + ' GB';
+  return (bytes / 1e6).toFixed(0) + ' MB';
+}
+
+/* Build a dashboard model stub from a HuggingFace GGUF file. VRAM is taken
+ * from the actual file size (× 1.2 for KV-cache headroom) when available;
+ * compute / bandwidth needs are left null until the user adjusts params. */
+function mapHFQuantToModel(modelId, quant) {
+  const shortName = modelId.split('/').pop().replace(/-GGUF$/i, '');
+  const quantName = quant?.name || 'unknown';
+  const guess = parseParamsFromName(shortName);
+  const totalB = guess.total ?? null;
+  const vramFromFile = quant?.size != null
+    ? Math.round((quant.size / 1e9) * 1.2 * 10) / 10
+    : null;
+  const vram = vramFromFile ?? (totalB != null ? Math.round(totalB * 0.5 * 1.2) : null);
+  return {
+    id: ('hf-' + modelId.replace(/[^a-z0-9]/gi, '-') + '-' + quantName)
+          .toLowerCase().replace(/-+/g, '-').slice(0, 80),
+    name: shortName + ' (' + quantName + ')',
+    total: totalB,
+    active: totalB,
+    dense: true,
+    vram,
+    computeNeed: null,
+    bandwidthNeed: null,
+    context: null,
+    useCase: 'Imported from HuggingFace',
+    sources: ['https://huggingface.co/' + modelId],
+    verified: null,
+    notes: ['GGUF ' + quantName + ' · VRAM estimated from file size · verify params before trusting matrix']
+  };
+}
+
 /* --- Inline param editor for imported entries --- */
 function ParamEditor({ model, onChange }) {
   return (
@@ -1966,7 +2120,70 @@ function ParamEditor({ model, onChange }) {
 }
 
 /* --- Search + multi-select catalogue panel --- */
-function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, onClear, onUpdateModel, onRemoveModel, onOpenImport }) {
+/* --- Hardware catalogue panel --- */
+function HardwareCataloguePanel({ selectedIds, onToggle, onSelectAll, onClear }) {
+  const [query, setQuery] = React.useState('');
+  const [expanded, setExpanded] = React.useState(true);
+  const catalogue = window.HARDWARE_CATALOGUE;
+
+  const filtered = catalogue.filter(h => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return h.name.toLowerCase().includes(q) ||
+           h.category.toLowerCase().includes(q) ||
+           h.id.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="catalogue-panel">
+      <div className="catalogue-head">
+        <div className="catalogue-title">
+          <button className="catalogue-toggle" onClick={() => setExpanded(!expanded)}>
+            {expanded ? '▾' : '▸'}
+          </button>
+          <span>Hardware-Katalog</span>
+          <span className="catalogue-count">{selectedIds.length} / {catalogue.length} ausgewählt</span>
+        </div>
+        <div className="catalogue-actions">
+          <input type="search" className="catalogue-search"
+            placeholder="Suche nach Name oder Kategorie …"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)} />
+          <button className="catalogue-btn" onClick={onSelectAll}>Alle</button>
+          <button className="catalogue-btn" onClick={onClear}>Keine</button>
+        </div>
+      </div>
+      {expanded && (
+        <div className="catalogue-list">
+          {filtered.length === 0 && (
+            <div className="catalogue-empty">Keine Treffer für „{query}".</div>
+          )}
+          {filtered.map(h => {
+            const checked = selectedIds.includes(h.id);
+            return (
+              <label key={h.id} className={`catalogue-row ${checked ? 'on' : ''}`}>
+                <input type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggle(h.id)} />
+                <div className="catalogue-row-main">
+                  <div className="catalogue-row-name">
+                    <span style={{display:'inline-block', width:8, height:8, borderRadius:2, background:h.color}}></span>
+                    {h.name}
+                  </div>
+                  <div className="catalogue-row-meta">
+                    {h.vram} GB · {h.tflops} TFLOPS · {h.bandwidth.toLocaleString('de-DE')} GB/s · €{h.price.toLocaleString('de-DE')}
+                  </div>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, onClear, onUpdateModel, onRemoveModel, onOpenImport, onOpenHfImport }) {
   const [query, setQuery] = React.useState('');
   const [expanded, setExpanded] = React.useState(true);
 
@@ -1994,6 +2211,7 @@ function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, on
           <button className="catalogue-btn" onClick={onSelectAll}>Alle</button>
           <button className="catalogue-btn" onClick={onClear}>Keine</button>
           <button className="catalogue-btn primary" onClick={onOpenImport}>+ OpenRouter</button>
+          <button className="catalogue-btn hf" onClick={onOpenHfImport}>+ Hugging Face</button>
         </div>
       </div>
       {expanded && (
@@ -2003,16 +2221,19 @@ function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, on
           )}
           {filtered.map(m => {
             const checked = selectedIds.includes(m.id);
-            const imported = isImported(m);
+            const orImport = isImported(m);
+            const hfImport = isHfImport(m);
+            const userImport = orImport || hfImport;
             return (
-              <label key={m.id} className={`catalogue-row ${checked ? 'on' : ''} ${imported ? 'imported' : ''}`}>
+              <label key={m.id} className={`catalogue-row ${checked ? 'on' : ''} ${userImport ? 'imported' : ''} ${hfImport ? 'hf-import' : ''}`}>
                 <input type="checkbox"
                   checked={checked}
                   onChange={() => onToggle(m.id)} />
                 <div className="catalogue-row-main">
                   <div className="catalogue-row-name">
                     {m.name}
-                    {imported && <span className="catalogue-badge">OpenRouter</span>}
+                    {orImport && <span className="catalogue-badge">OpenRouter</span>}
+                    {hfImport && <span className="catalogue-badge hf">HuggingFace</span>}
                     {(m.total == null || m.active == null) && <span className="catalogue-badge needs-review">braucht Review</span>}
                   </div>
                   <div className="catalogue-row-meta">
@@ -2024,10 +2245,10 @@ function ModelCataloguePanel({ catalogue, selectedIds, onToggle, onSelectAll, on
                     {m.context && ' · ' + (m.context/1000).toLocaleString('de-DE') + 'k ctx'}
                   </div>
                 </div>
-                {imported && (
+                {userImport && (
                   <ParamEditor model={m} onChange={(updated) => onUpdateModel(updated)} />
                 )}
-                {imported && (
+                {userImport && (
                   <button className="catalogue-remove"
                     title="Entfernen"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveModel(m.id); }}>
@@ -2151,6 +2372,248 @@ function OpenRouterImportModal({ open, onClose, onImport }) {
   );
 }
 
+/* --- HuggingFace import modal ---
+ * Searches /api/models?filter=gguf and expands each row on demand to fetch
+ * sibling files. Quantizations are derived from .gguf filenames; VRAM is
+ * estimated from the actual file byte count when the API exposes it. */
+function HuggingFaceImportModal({ open, onClose, onImport }) {
+  const [query, setQuery] = React.useState('');
+  const [models, setModels] = React.useState([]);
+  const [fetchStatus, setFetchStatus] = React.useState('idle'); // idle | loading | ready | error
+  const [error, setError] = React.useState(null);
+  const [expandedModels, setExpandedModels] = React.useState({}); // id -> bool
+  const [quantCache, setQuantCache] = React.useState({});         // id -> { status, items, error? }
+  const [picked, setPicked] = React.useState(new Set());          // "modelId::quantName"
+  const debounceRef = React.useRef(null);
+
+  // Reset on every open
+  React.useEffect(() => {
+    if (!open) return;
+    setQuery('');
+    setModels([]);
+    setFetchStatus('idle');
+    setError(null);
+    setExpandedModels({});
+    setQuantCache({});
+    setPicked(new Set());
+  }, [open]);
+
+  const runSearch = (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) {
+      setModels([]);
+      setFetchStatus('idle');
+      return;
+    }
+    setFetchStatus('loading');
+    setError(null);
+    fetch(`https://huggingface.co/api/models?search=${encodeURIComponent(trimmed)}&filter=gguf&sort=downloads&limit=30`)
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        setModels(Array.isArray(data) ? data : []);
+        setFetchStatus('ready');
+      })
+      .catch(err => {
+        setError(err.message || String(err));
+        setFetchStatus('error');
+      });
+  };
+
+  const handleQueryChange = (e) => {
+    const next = e.target.value;
+    setQuery(next);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => runSearch(next), 400);
+  };
+
+  const fetchQuants = (modelId) => {
+    setQuantCache(prev => ({ ...prev, [modelId]: { status: 'loading', items: [] } }));
+    fetch(`https://huggingface.co/api/models/${modelId}`)
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        const siblings = data.siblings || [];
+        // Filter for .gguf files and group by quantization name. Keep the
+        // largest file when multiple shards share a quant name so the VRAM
+        // estimate reflects the full weights.
+        const ggufFiles = siblings.filter(s => /\.gguf$/i.test(s.rfilename || ''));
+        const grouped = {};
+        for (const f of ggufFiles) {
+          const name = parseQuantName(f.rfilename);
+          const size = (f.size != null) ? f.size : (f.lfs?.size != null ? f.lfs.size : null);
+          if (!grouped[name] || (size != null && grouped[name].size != null && size > grouped[name].size)) {
+            grouped[name] = { name, filename: f.rfilename, size };
+          }
+          if (!grouped[name]) grouped[name] = { name, filename: f.rfilename, size };
+        }
+        const items = Object.values(grouped).sort((a, b) => {
+          if (a.size == null && b.size == null) return a.name.localeCompare(b.name);
+          if (a.size == null) return 1;
+          if (b.size == null) return -1;
+          return a.size - b.size;
+        });
+        setQuantCache(prev => ({ ...prev, [modelId]: { status: 'ready', items } }));
+      })
+      .catch(err => {
+        setQuantCache(prev => ({
+          ...prev,
+          [modelId]: { status: 'error', items: [], error: err.message || String(err) }
+        }));
+      });
+  };
+
+  const toggleExpand = (modelId) => {
+    setExpandedModels(prev => {
+      const next = { ...prev, [modelId]: !prev[modelId] };
+      if (next[modelId] && !quantCache[modelId]) fetchQuants(modelId);
+      return next;
+    });
+  };
+
+  const togglePick = (modelId, quantName) => {
+    const key = modelId + '::' + quantName;
+    const next = new Set(picked);
+    next.has(key) ? next.delete(key) : next.add(key);
+    setPicked(next);
+  };
+
+  const confirm = () => {
+    const stubs = [];
+    for (const key of picked) {
+      const idx = key.indexOf('::');
+      const modelId = key.slice(0, idx);
+      const quantName = key.slice(idx + 2);
+      const items = quantCache[modelId]?.items || [];
+      const quant = items.find(i => i.name === quantName);
+      if (quant) stubs.push(mapHFQuantToModel(modelId, quant));
+    }
+    onImport(stubs);
+    setPicked(new Set());
+    onClose();
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="modal-title">Import aus Hugging Face</div>
+            <div className="modal-sub">Suche GGUF-Repos · jeder Treffer lässt sich aufklappen, um Quantisierungen mit echten Dateigrößen zu zeigen.</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body">
+          <input type="search" className="catalogue-search" style={{width:'100%', marginBottom: 10}}
+            placeholder='Suche z. B. "llama 3", "qwen", "mistral" …'
+            value={query}
+            onChange={handleQueryChange}
+            autoFocus />
+
+          {fetchStatus === 'idle' && (
+            <div className="modal-status" style={{padding:'16px 0'}}>
+              Tippe einen Suchbegriff ein, um GGUF-Modelle bei Hugging Face zu finden.
+            </div>
+          )}
+          {fetchStatus === 'loading' && (
+            <div className="modal-status" style={{padding:'16px 0'}}>Suche bei Hugging Face …</div>
+          )}
+          {fetchStatus === 'error' && (
+            <div className="modal-status error" style={{padding:'16px 0'}}>
+              <div><strong>Konnte Hugging Face nicht erreichen.</strong></div>
+              <div style={{marginTop:6, fontSize:12, color:'var(--text-secondary)'}}>{error}</div>
+              <div style={{marginTop:12, fontSize:12, color:'var(--text-tertiary)'}}>
+                Hinweis: Beim Öffnen über <code>file://</code> blockiert der Browser die Cross-Origin-Anfrage.
+                Starte stattdessen <code>python3 -m http.server</code> oder das mitgelieferte Docker-Image.
+              </div>
+            </div>
+          )}
+          {fetchStatus === 'ready' && models.length === 0 && (
+            <div className="modal-status" style={{padding:'16px 0'}}>Keine Treffer für „{query}".</div>
+          )}
+          {fetchStatus === 'ready' && models.length > 0 && (
+            <div className="modal-list">
+              {models.map(m => {
+                const id = m.id || m.modelId;
+                if (!id) return null;
+                const isOpen = !!expandedModels[id];
+                const cache = quantCache[id];
+                return (
+                  <div key={id} style={{background:'var(--bg-panel)'}}>
+                    <div className="hf-model-row" onClick={() => toggleExpand(id)}>
+                      <button className="model-expand-btn"
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(id); }}>
+                        {isOpen ? '▾' : '▸'}
+                      </button>
+                      <div className="hf-model-main">
+                        <div className="hf-model-name">{id}</div>
+                        <div className="hf-model-meta">
+                          {(m.downloads != null) && '↓ ' + m.downloads.toLocaleString('de-DE') + ' Downloads'}
+                          {(m.likes != null) && ' · ♥ ' + m.likes.toLocaleString('de-DE')}
+                          {m.pipeline_tag && ' · ' + m.pipeline_tag}
+                        </div>
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div className="quant-list">
+                        {cache?.status === 'loading' && (
+                          <div className="quant-empty">Lade Quantisierungen …</div>
+                        )}
+                        {cache?.status === 'error' && (
+                          <div className="quant-empty">Konnte Dateien nicht laden ({cache.error}).</div>
+                        )}
+                        {cache?.status === 'ready' && cache.items.length === 0 && (
+                          <div className="quant-empty">Keine .gguf-Dateien in diesem Repo.</div>
+                        )}
+                        {cache?.status === 'ready' && cache.items.map(q => {
+                          const key = id + '::' + q.name;
+                          const isPicked = picked.has(key);
+                          const vramGB = (q.size != null)
+                            ? Math.round((q.size / 1e9) * 1.2 * 10) / 10
+                            : null;
+                          return (
+                            <label key={q.name} className={`quant-row ${isPicked ? 'picked' : ''}`}>
+                              <input type="checkbox" checked={isPicked}
+                                onChange={() => togglePick(id, q.name)} />
+                              <div className="quant-row-main">
+                                <div className="quant-row-name">{q.name}</div>
+                                <div className="quant-row-meta">
+                                  {formatBytes(q.size)}
+                                  {vramGB != null && ' · ~' + vramGB + ' GB VRAM'}
+                                  {' · '}<span style={{color:'var(--text-tertiary)'}}>{q.filename}</span>
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="modal-foot">
+          <span className="modal-count">{picked.size} Quantisierung{picked.size === 1 ? '' : 'en'} ausgewählt</span>
+          <button className="catalogue-btn" onClick={onClose}>Abbrechen</button>
+          <button className="catalogue-btn primary" disabled={picked.size === 0} onClick={confirm}>
+            {picked.size} importieren
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ===== Main app — composes all sections ===== */
 
 const DEFAULT_PARAMS = {
@@ -2176,8 +2639,9 @@ function Tooltip({ tip }) {
   );
 }
 
-const STORAGE_KEY_SELECTION = 'aiHwDash.selectedModelIds.v1';
-const STORAGE_KEY_CUSTOM    = 'aiHwDash.customModels.v1';
+const STORAGE_KEY_SELECTION    = 'aiHwDash.selectedModelIds.v1';
+const STORAGE_KEY_CUSTOM       = 'aiHwDash.customModels.v1';
+const STORAGE_KEY_HW_SELECTION = 'aiHwDash.selectedHwIds.v1';
 
 function loadJSON(key, fallback) {
   try {
@@ -2197,10 +2661,17 @@ function App() {
     loadJSON(STORAGE_KEY_SELECTION, window.MODELS_CATALOGUE.map(m => m.id))
   );
   const [importOpen, setImportOpen] = useState(false);
+  const [hfImportOpen, setHfImportOpen] = useState(false);
+
+  // --- Hardware catalogue state ---
+  const [selectedHwIds, setSelectedHwIds] = useState(() =>
+    loadJSON(STORAGE_KEY_HW_SELECTION, window.HARDWARE_CATALOGUE.map(h => h.id))
+  );
 
   // Persist whenever they change
   useEffect(() => { localStorage.setItem(STORAGE_KEY_SELECTION, JSON.stringify(selectedIds)); }, [selectedIds]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customModels)); }, [customModels]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_HW_SELECTION, JSON.stringify(selectedHwIds)); }, [selectedHwIds]);
 
   // The full library = built-in catalogue ∪ custom imports, with derivations applied
   const fullCatalogue = useMemo(() => {
@@ -2216,9 +2687,15 @@ function App() {
     );
   }, [fullCatalogue, selectedIds]);
 
+  // Hardware filtered by the user's catalogue selection
+  const activeHardware = useMemo(() => {
+    return window.HARDWARE_CATALOGUE.filter(h => selectedHwIds.includes(h.id));
+  }, [selectedHwIds]);
+
   // Sync globals before children render so HARDWARE/MODELS-reading components see the new arrays
   window.setCatalogue(fullCatalogue);
   window.setActiveModels(activeModels);
+  window.setActiveHardware(activeHardware);
 
   // Auto-default selection on first load to highlight DGX Spark
   useEffect(() => {
@@ -2246,12 +2723,31 @@ function App() {
     setCustomModels(prev => [...prev, ...fresh]);
     setSelectedIds(prev => [...prev, ...fresh.map(s => s.id)]);
   };
+  const importFromHuggingFace = (stubs) => {
+    const existingIds = new Set(customModels.map(m => m.id));
+    const fresh = stubs.filter(s => !existingIds.has(s.id));
+    setCustomModels(prev => [...prev, ...fresh]);
+    setSelectedIds(prev => [...prev, ...fresh.map(s => s.id)]);
+  };
+
+  // --- Hardware catalogue handlers ---
+  const toggleHwId = (id) => setSelectedHwIds(prev =>
+    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+  );
+  const selectAllHw = () => setSelectedHwIds(window.HARDWARE_CATALOGUE.map(h => h.id));
+  const clearAllHw  = () => setSelectedHwIds([]);
 
   return (
     <>
       <ControlBar params={params} setParams={setParams} />
 
       <KPICards params={params} selectedHw={selection?.hwId} />
+
+      <HardwareCataloguePanel
+        selectedIds={selectedHwIds}
+        onToggle={toggleHwId}
+        onSelectAll={selectAllHw}
+        onClear={clearAllHw} />
 
       <ModelCataloguePanel
         catalogue={fullCatalogue}
@@ -2261,12 +2757,18 @@ function App() {
         onClear={clearAll}
         onUpdateModel={updateCustom}
         onRemoveModel={removeCustom}
-        onOpenImport={() => setImportOpen(true)} />
+        onOpenImport={() => setImportOpen(true)}
+        onOpenHfImport={() => setHfImportOpen(true)} />
 
       <OpenRouterImportModal
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={importFromOpenRouter} />
+
+      <HuggingFaceImportModal
+        open={hfImportOpen}
+        onClose={() => setHfImportOpen(false)}
+        onImport={importFromHuggingFace} />
 
       <div className="section">
         <SectionHead num="01"
@@ -2322,8 +2824,8 @@ function App() {
         <div>KI-Hosting Hardware-Dashboard · Quellen: AMD, Apple, NVIDIA, Skywork, TechPowerUp · Stand Q4 2026</div>
         <div className="footer-meta">
           <span>{activeModels.length} Modelle</span>
-          <span>{HARDWARE.length} Hardware-Systeme</span>
-          <span>{activeModels.length * HARDWARE.length} Kombinationen</span>
+          <span>{activeHardware.length} Hardware-Systeme</span>
+          <span>{activeModels.length * activeHardware.length} Kombinationen</span>
         </div>
       </div>
 
