@@ -1217,7 +1217,7 @@ function ControlBar({ params, setParams }) {
     <div className="control-bar">
       <div className="control-group">
         <span className="control-label">Strompreis</span>
-        <input type="range" min="0.10" max="0.50" step="0.005"
+        <input type="range" min="0.08" max="0.50" step="0.005"
           value={params.kWh} onChange={update('kWh')} />
         <span className="control-value">{params.kWh.toFixed(3)} €/kWh</span>
       </div>

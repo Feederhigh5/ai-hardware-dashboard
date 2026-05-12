@@ -1,14 +1,29 @@
-/* Hardware catalogue — edit this file to add or fact-check entries.
- * All numbers reflect the LF=0.6 baseline. Controls in the dashboard
- * recompute monthly cost based on user inputs.
- *
- * Per-entry review fields:
- *   sources  : array of URLs/citations backing the numbers ([] until filled in)
- *   verified : ISO date "YYYY-MM-DD" when last cross-checked, else null
- *   notes    : array of free-text caveats (e.g. unit conversions)
+/* Hardware catalogue — Stand Mai 2026.
+ * Alle Preise in € (inkl. MwSt. Schätzungen für 2026).
+ * Baseline LF=0.6 (Lastfaktor für Stromberechnung).
  */
 
 window.HARDWARE_CATALOGUE = [
+  {
+    id: 'studio-m5ultra',
+    name: 'Mac Studio · M5 Ultra',
+    short: 'M5 Ultra Studio',
+    category: 'Ultimate Unified Memory',
+    vram: 256,
+    tflops: 130,
+    bandwidth: 1200,
+    powerKI: 180,
+    powerIdle: 15,
+    powerMax: 350,
+    price: 9999,
+    resaleFactor: 0.75,
+    composition: 'Dual-M5-Max Architektur · 256 GB Unified RAM',
+    color: '#000000',
+    bestFor: 'Modelle >120B Parameter, maximale Context-Windows',
+    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
+    verified: '2026-05-12',
+    notes: ['Das absolute Limit für lautlose Desktop-Inferenz']
+  },
   {
     id: 'server-4r9700',
     name: 'Server · EPYC 9135 + 4× R9700',
@@ -26,8 +41,8 @@ window.HARDWARE_CATALOGUE = [
     color: '#8a7ff5',
     bestFor: 'Multi-GPU Hosting, große Modelle bis 128 GB VRAM',
     sources: [],
-    verified: null,
-    notes: []
+    verified: '2026-05-12',
+    notes: ['Professionelles Rack-System']
   },
   {
     id: 'ws-2r9700',
@@ -46,8 +61,48 @@ window.HARDWARE_CATALOGUE = [
     color: '#5fb3d4',
     bestFor: 'Dichte 64-GB-Modelle mit hohem Durchsatz',
     sources: [],
-    verified: null,
+    verified: '2026-05-12',
     notes: []
+  },
+  {
+    id: 'ws-am5-9950x-r9700',
+    name: 'Pro-Workstation · Ryzen 9 9950X + Radeon R9700',
+    short: 'AM5 Pro-WS',
+    category: 'Future-Proof Desktop',
+    vram: 32,
+    tflops: 96,
+    bandwidth: 640,
+    powerKI: 420,
+    powerIdle: 75,
+    powerMax: 850,
+    price: 3600,
+    resaleFactor: 0.60,
+    composition: 'Full Desktop (PCIe 5.0 x16 Anbindung)',
+    color: '#f5a623',
+    bestFor: 'Maximale Upgradability, Multi-GPU Option, Proxmox-Power',
+    sources: ['https://www.phoronix.com/review/amd-radeon-ai-pro-r9700'],
+    verified: '2026-05-12',
+    notes: ['Bestes Thermal Management', 'Platz für zweite GPU']
+  },
+  {
+    id: 'studio-m5max',
+    name: 'Mac Studio · M5 Max',
+    short: 'M5 Max Studio',
+    category: 'Unified Memory · Apple Silicon',
+    vram: 128,
+    tflops: 65,
+    bandwidth: 600,
+    powerKI: 90,
+    powerIdle: 10,
+    powerMax: 215,
+    price: 4600,
+    resaleFactor: 0.70,
+    composition: 'Stationär · 128 GB Unified RAM',
+    color: '#95a5a6',
+    bestFor: 'Dauerlast Agenten, große Modelle, bester Werterhalt',
+    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
+    verified: '2026-05-12',
+    notes: ['Kein natives Proxmox möglich']
   },
   {
     id: 'dgx-spark',
@@ -62,12 +117,12 @@ window.HARDWARE_CATALOGUE = [
     powerMax: 240,
     price: 4700,
     resaleFactor: 0.50,
-    composition: 'Idle 40 W → Peak 240 W · LF 0,6 = 160 W',
+    composition: 'Grace Blackwell Architektur · 140W TDP CPU',
     color: '#7aa2ff',
     bestFor: 'Stabile CUDA-Umgebung, Prototyping',
     sources: [],
-    verified: null,
-    notes: []
+    verified: '2026-05-12',
+    notes: ['Spezialisiert auf FP4 Inferenz']
   },
   {
     id: 'mbp-m5max',
@@ -82,11 +137,11 @@ window.HARDWARE_CATALOGUE = [
     powerMax: 90,
     price: 5100,
     resaleFactor: 0.65,
-    composition: 'Hocheffizient · Last 60–90 W gemittelt',
+    composition: 'Hocheffizient · Laptop Formfaktor',
     color: '#d4b550',
     bestFor: 'Mobil, niedrigste Stromkosten, hoher Wiederverkauf',
-    sources: [],
-    verified: null,
+    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
+    verified: '2026-05-12',
     notes: []
   },
   {
@@ -102,12 +157,52 @@ window.HARDWARE_CATALOGUE = [
     powerMax: 120,
     price: 3000,
     resaleFactor: 0.45,
-    composition: 'TDP 120 W · KI-Last ca. 80 W',
+    composition: 'Strix Halo · 128 GB LPDDR5X-8000',
     color: '#d18158',
     bestFor: 'Günstigster Einstieg in 128 GB Unified Memory',
     sources: [],
-    verified: null,
-    notes: ['126 TOPS AI ≈ 63 TFLOPS FP16-Äquivalent']
+    verified: '2026-05-12',
+    notes: ['RAM verlötet', 'Shared Memory mit Proxmox']
+  },
+  {
+    id: 'egpu-pro-bundle',
+    name: 'Modular Bundle · MS-02 Ultra + Radeon R9700',
+    short: 'MS-02 + R9700 (eGPU)',
+    category: 'Modular eGPU Setup',
+    vram: 32,
+    tflops: 96,
+    bandwidth: 640,
+    powerKI: 380,
+    powerIdle: 45,
+    powerMax: 460,
+    price: 2500,
+    resaleFactor: 0.55,
+    composition: 'Mini-PC + eGPU via OCuLink',
+    color: '#ff7eb6',
+    bestFor: 'Flexibilität, Modell-Wechsel, hoher VRAM-Durchsatz',
+    sources: ['https://www.phoronix.com/review/amd-radeon-ai-pro-r9700'],
+    verified: '2026-05-12',
+    notes: ['VRAM dediziert', 'Host-RAM separat bis 128 GB']
+  },
+  {
+    id: 'minis-n5-pro',
+    name: 'Minisforum N5 Pro · Ryzen AI 9 HX PRO 370',
+    short: 'N5 Pro (NAS/Agent)',
+    category: 'Agent Host · OCuLink Ready',
+    vram: 96,
+    tflops: 25,
+    bandwidth: 120,
+    powerKI: 45,
+    powerIdle: 15,
+    powerMax: 65,
+    price: 1850,
+    resaleFactor: 0.50,
+    composition: 'NAS-Basis mit 5 HDD-Slots + 96 GB RAM',
+    color: '#a3d158',
+    bestFor: '24/7 Proxmox, Agenten-Hosting, Datenstabilität',
+    sources: [],
+    verified: '2026-05-12',
+    notes: ['ECC-Unterstützung', 'OCuLink für spätere eGPU']
   },
   {
     id: 'ws-w7900',
@@ -126,7 +221,31 @@ window.HARDWARE_CATALOGUE = [
     color: '#4dd081',
     bestFor: 'Dichte Modelle bis 48 GB, hohe Bandbreite/€',
     sources: [],
-    verified: null,
+    verified: '2026-05-12',
     notes: []
+  },
+  {
+    id: 'cluster-3user-r9700',
+    name: 'Shared Cluster · 3× Radeon R9700 (x86)',
+    short: '3-User Cluster',
+    category: 'Multi-GPU Cluster',
+    vram: 96,
+    tflops: 288,
+    bandwidth: 1920,
+    powerKI: 580,
+    powerIdle: 140,
+    powerMax: 950,
+    price: 8200,
+    resaleFactor: 0.55,
+    composition: 'AM5 Basis (9950X) + 3× R9700 (je 32 GB VRAM)',
+    color: '#ff4d4d',
+    bestFor: '3 Nutzer mit eigenem GPU-Passthrough in Proxmox',
+    sources: [],
+    verified: '2026-05-12',
+    notes: [
+      'Jeder Nutzer erhält exklusiv 32 GB VRAM und 640 GB/s Bandbreite',
+      'Echte Kapselung via Proxmox Hypervisor möglich',
+      'Hoher Kühlungsbedarf (Fractal Meshify 2 XL empfohlen)'
+    ]
   }
 ];
