@@ -115,7 +115,7 @@ window.HARDWARE_CATALOGUE = [
     powerKI: 160,
     powerIdle: 40,
     powerMax: 240,
-    price: 4700,
+    price: 3600,
     resaleFactor: 0.50,
     composition: 'Grace Blackwell Architektur · 140W TDP CPU',
     color: '#7aa2ff',
