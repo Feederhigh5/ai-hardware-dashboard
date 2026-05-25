@@ -2,9 +2,7 @@
 
 Interactive dark-mode dashboard for evaluating AI hardware against modern large language models. Visualizes VRAM requirements, inference throughput, and Total Cost of Ownership across 6 hardware systems and 9 AI models.
 
-<a href="https://run-ai.schindel.dev">
-  <img src="preview.png" alt="Dashboard preview" width="600">
-</a>
+![Dashboard preview](https://raw.githubusercontent.com/feederhigh5/ai-hardware-dashboard/main/preview.png)
 
 ## What it does
 
