@@ -185,6 +185,26 @@ window.HARDWARE_CATALOGUE = [
     notes: []
   },
   {
+    id: 'mbp-m5pro-64',
+    name: 'Apple MacBook Pro 14" · M5 Pro (64 GB)',
+    short: 'M5 Pro 14"',
+    category: 'Unified Memory · Apple Silicon',
+    vram: 64,
+    tflops: 40,
+    bandwidth: 300,
+    powerKI: 40,
+    powerIdle: 8,
+    powerMax: 70,
+    price: 3200,
+    resaleFactor: 0.68,
+    composition: '14" · 64 GB Unified RAM · effizienter Laptop',
+    color: '#8fa3b8',
+    bestFor: 'Sandboxed lokale Agenten, 14B–32B Modelle, bester Wert/macOS',
+    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
+    verified: '2026-06-09',
+    notes: ['Reicht für 32B-Agenten mit großem Context', 'Sehr leise, lange Akkulaufzeit']
+  },
+  {
     id: 'gmktec-evo-x2',
     name: 'GMKtec EVO-X2 · AI Max+ 395',
     short: 'EVO-X2',
