@@ -1,5 +1,7 @@
-/* Hardware catalogue — Stand Mai 2026.
+/* Hardware catalogue — Stand Juli 2026.
  * Alle Preise in € (inkl. MwSt. Schätzungen für 2026).
+ * Apple-Preise aktualisiert am 08.07.2026 nach der Preiserhöhung vom
+ * 25.06.2026 (DRAM-/Speicher-Knappheit).
  * Baseline LF=0.6 (Lastfaktor für Stromberechnung).
  */
 
@@ -15,14 +17,21 @@ window.HARDWARE_CATALOGUE = [
     powerKI: 180,
     powerIdle: 15,
     powerMax: 350,
-    price: 9999,
+    price: 13299,
     resaleFactor: 0.75,
     composition: 'Dual-M5-Max Architektur · 256 GB Unified RAM',
     color: '#000000',
     bestFor: 'Modelle >120B Parameter, maximale Context-Windows',
-    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
-    verified: '2026-05-12',
-    notes: ['Das absolute Limit für lautlose Desktop-Inferenz']
+    sources: [
+      'https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer',
+      'https://www.macrumors.com/2026/06/25/apple-just-increased-prices/',
+      'https://www.ad-hoc-news.de/wissenschaft/preisschock-bei-apple-mac-studio-m3-ultra-springt-von-3-999-auf-5-299/69629198'
+    ],
+    verified: '2026-07-08',
+    notes: [
+      'Das absolute Limit für lautlose Desktop-Inferenz',
+      'Preis +33% nach Apple-Preiserhöhung vom 25.06.2026 (DRAM-Knappheit); 256-GB-SKU aus bestätigter Ultra-Klasse-Erhöhung extrapoliert'
+    ]
   },
   {
     id: 'server-4r9700',
@@ -95,14 +104,21 @@ window.HARDWARE_CATALOGUE = [
     powerKI: 90,
     powerIdle: 10,
     powerMax: 215,
-    price: 4600,
+    price: 7399,
     resaleFactor: 0.70,
     composition: 'Stationär · 128 GB Unified RAM',
     color: '#95a5a6',
     bestFor: 'Dauerlast Agenten, große Modelle, bester Werterhalt',
-    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
-    verified: '2026-05-12',
-    notes: ['Kein natives Proxmox möglich']
+    sources: [
+      'https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer',
+      'https://www.macrumors.com/2026/06/25/apple-just-increased-prices/',
+      'https://borncity.com/news/apple-erhoeht-preise-macbook-air-200-euro-mac-studio-450-euro/'
+    ],
+    verified: '2026-07-08',
+    notes: [
+      'Kein natives Proxmox möglich',
+      'Preis deutlich gestiegen nach Apple-Preiserhöhung vom 25.06.2026 (DRAM-Knappheit); 128-GB-Konfiguration extrapoliert (~500 € unter MBP M5 Max 128 GB)'
+    ]
   },
   {
     id: 'dgx-spark',
@@ -175,14 +191,18 @@ window.HARDWARE_CATALOGUE = [
     powerKI: 55,
     powerIdle: 12,
     powerMax: 90,
-    price: 5100,
+    price: 7899,
     resaleFactor: 0.65,
     composition: 'Hocheffizient · Laptop Formfaktor',
     color: '#d4b550',
     bestFor: 'Mobil, niedrigste Stromkosten, hoher Wiederverkauf',
-    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
-    verified: '2026-05-12',
-    notes: []
+    sources: [
+      'https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer',
+      'https://www.macrumors.com/2026/06/25/apple-just-increased-prices/',
+      'https://www.ldlc.com/en/product/PB00731016.html'
+    ],
+    verified: '2026-07-08',
+    notes: ['Neupreis nach Apple-Preiserhöhung vom 25.06.2026 (128 GB / 2 TB, DRAM-Knappheit)']
   },
   {
     id: 'mbp-m5pro-64',
@@ -195,14 +215,21 @@ window.HARDWARE_CATALOGUE = [
     powerKI: 40,
     powerIdle: 8,
     powerMax: 70,
-    price: 3200,
+    price: 4249,
     resaleFactor: 0.68,
     composition: '14" · 64 GB Unified RAM · effizienter Laptop',
     color: '#8fa3b8',
     bestFor: 'Sandboxed lokale Agenten, 14B–32B Modelle, bester Wert/macOS',
-    sources: ['https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer'],
-    verified: '2026-06-09',
-    notes: ['Reicht für 32B-Agenten mit großem Context', 'Sehr leise, lange Akkulaufzeit']
+    sources: [
+      'https://o-mega.ai/articles/macbook-m5-pro-and-max-the-ai-professional-s-computer',
+      'https://www.macuser.de/threads/macbook-pro-preiserhohungen-ab-25-06-2026.969209/'
+    ],
+    verified: '2026-07-08',
+    notes: [
+      'Reicht für 32B-Agenten mit großem Context',
+      'Sehr leise, lange Akkulaufzeit',
+      'Neupreis 4.249 € (vorher 3.399 €) nach Apple-Preiserhöhung vom 25.06.2026'
+    ]
   },
   {
     id: 'gmktec-evo-x2',
